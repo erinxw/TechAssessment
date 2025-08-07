@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿using System.Data;
+using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using TechAssessment.Data;
@@ -42,73 +43,114 @@ namespace TechAssessment.Controllers
         {
             if (id is null) return NotFound();
 
-            var freelancer = await _freelancerRepository.GetFreelancerWithDetails(id.Value);
+            var freelancer = await _freelancerRepository.GetFreelancerWithDetailsAsync(id.Value);
             return freelancer is null ? NotFound() : View(freelancer);
         }
 
         // GET: Freelancers/Create
         public IActionResult Create() => View();
 
-        // POST: Freelancers/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Freelancer freelancer)
+        // Add these parameters to the Create action method signature
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Freelancer freelancer, string Skillsets, string Hobbies)
         {
+
             if (!ModelState.IsValid) return View(freelancer);
 
+
+
             using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
             await connection.OpenAsync();
+
             using var transaction = connection.BeginTransaction();
 
+
+
             try
+
             {
-                var sql = @"
-                    INSERT INTO Freelancer (Username, Email, PhoneNum)
-                    VALUES (@Username, @Email, @PhoneNum);
-                    SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
-                var freelancerId = await connection.ExecuteScalarAsync<int>(sql, freelancer, transaction);
+                var insertSql = @"
+                            INSERT INTO Freelancer (Username, Email, PhoneNum)
+                            VALUES (@Username, @Email, @PhoneNum);
+                            SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
-                if (freelancer.Skillsets?.Any() == true)
+
+
+                var freelancerId = await connection.ExecuteScalarAsync<int>(insertSql, freelancer, transaction);
+
+
+
+                // Skillsets
+
+                if (!string.IsNullOrWhiteSpace(Skillsets))
+
                 {
-                    foreach (var skill in freelancer.Skillsets)
+
+                    var skillList = Skillsets.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim());
+
+                    foreach (var skill in skillList)
+
                     {
-                        skill.FreelancerId = freelancerId;
-                        await connection.ExecuteAsync(
-                            "INSERT INTO Skillset (FreelancerId, Name) VALUES (@FreelancerId, @Name);",
-                            skill, transaction
-                        );
+
+                        var insertSkillSql = "INSERT INTO Skillset (FreelancerId, SkillName) VALUES (@FreelancerId, @Name);";
+
+                        await connection.ExecuteAsync(insertSkillSql, new { FreelancerId = freelancerId, Name = skill }, transaction);
+
                     }
+
                 }
 
-                if (freelancer.Hobbies?.Any() == true)
+
+
+                // Hobbies
+
+                if (!string.IsNullOrWhiteSpace(Hobbies))
+
                 {
-                    foreach (var hobby in freelancer.Hobbies)
+
+                    var hobbyList = Hobbies.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(h => h.Trim());
+
+                    foreach (var hobby in hobbyList)
+
                     {
-                        hobby.FreelancerId = freelancerId;
-                        await connection.ExecuteAsync(
-                            "INSERT INTO Hobby (FreelancerId, Name) VALUES (@FreelancerId, @Name);",
-                            hobby, transaction
-                        );
+
+                        var insertHobbySql = "INSERT INTO Hobby (FreelancerId, HobbyName) VALUES (@FreelancerId, @Name);";
+
+                        await connection.ExecuteAsync(insertHobbySql, new { FreelancerId = freelancerId, Name = hobby }, transaction);
+
                     }
+
                 }
+
+
 
                 transaction.Commit();
+
                 return RedirectToAction(nameof(Index));
+
             }
+
             catch
+
             {
+
                 transaction.Rollback();
+
                 throw;
+
             }
-        }
+
+        }
 
         // GET: Freelancers/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id is null) return NotFound();
 
-            var freelancer = await _freelancerRepository.GetFreelancerWithDetails(id.Value);
+            var freelancer = await _freelancerRepository.GetFreelancerWithDetailsAsync(id.Value);
             return freelancer is null ? NotFound() : View(freelancer);
         }
 

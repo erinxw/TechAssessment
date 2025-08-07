@@ -9,6 +9,6 @@ namespace TechAssessment.Models
         public string? Name { get; set; }
 
         [Required]
-        public Freelancer Freelancer { get; set; }
+        public Freelancer? Freelancer { get; set; }
     }
 }

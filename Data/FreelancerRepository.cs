@@ -13,7 +13,7 @@ namespace TechAssessment.Data
             _configuration = configuration;
         }
 
-        public async Task<Freelancer> GetFreelancerWithDetails(int id)
+        public async Task<Freelancer> GetFreelancerWithDetailsAsync(int id)
         {
             using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
