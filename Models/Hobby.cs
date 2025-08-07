@@ -1,11 +1,14 @@
-﻿namespace TechAssessment.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace TechAssessment.Models
 {
     public class Hobby
     {
         public int Id { get; set; }
         public int FreelancerId { get; set; }
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
+        [Required]
         public Freelancer Freelancer { get; set; }
     }
 }

@@ -62,7 +62,7 @@ namespace TechAssessment.Data
                     return current;
                 },
                 new { Id = id },
-                splitOn: "SkillsetName,HobbyName"
+                splitOn: "SkillName,HobbyName"
             );
 
             return freelancerDict.Values.FirstOrDefault();
