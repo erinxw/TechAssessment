@@ -49,7 +49,7 @@ namespace TechAssessment.Controllers
         // GET: Freelancers/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id is null) return NotFound();
+            var freelancer = await _freelancerRepository.GetFreelancerDetailsAsync(id);
 
             var freelancer = await _freelancerRepository.GetFreelancerDetailsAsync(id.Value);
             return freelancer is null ? NotFound() : View(freelancer);
