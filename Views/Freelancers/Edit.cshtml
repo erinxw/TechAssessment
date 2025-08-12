@@ -29,14 +29,15 @@
                 <span asp-validation-for="PhoneNum" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Skillsets" class="control-label"></label>
-                <input asp-for="Skillsets" class="form-control" />
-                <span asp-validation-for="Skillsets" class="text-danger"></span>
+                <label>Skills (comma separated)</label>
+                <input name="SkillsetsInput" class="form-control"
+                       value="@(Model.Skillsets != null ? string.Join(", ", Model.Skillsets.Select(s => s.SkillName)) : "")" />
             </div>
+
             <div class="form-group">
-                <label asp-for="Hobbies" class="control-label"></label>
-                <input asp-for="Hobbies" class="form-control" />
-                <span asp-validation-for="Hobbies" class="text-danger"></span>
+                <label>Hobbies (comma separated)</label>
+                <input name="HobbiesInput" class="form-control"
+                       value="@(Model.Hobbies != null ? string.Join(", ", Model.Hobbies.Select(h => h.HobbyName)) : "")" />
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />

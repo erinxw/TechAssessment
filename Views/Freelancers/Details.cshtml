@@ -28,21 +28,23 @@
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.PhoneNum)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Skillsets)
         </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Skillsets)
+        <dd class="col-sm-10">
+            @string.Join(", ", Model.Skillsets.Select(s => s.SkillName))
         </dd>
-        <dt class = "col-sm-2">
+
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Hobbies)
         </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Hobbies)
+        <dd class="col-sm-10">
+            @string.Join(", ", Model.Hobbies.Select(h => h.HobbyName))
         </dd>
     </dl>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+<div class="mt-3">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>
+

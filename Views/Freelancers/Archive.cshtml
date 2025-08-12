@@ -1,12 +1,12 @@
 ﻿@model IEnumerable<TechAssessment.Models.Freelancer>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Archive";
 }
 
-<h1>Freelancers</h1>
+<h1>Archive</h1>
 
-<form asp-action="ShowSearchResultsUnarchived">
+<form asp-action="ShowSearchResultsArchived">
     <div class="form-group d-flex">
         <label for="SearchPhrase" class="control-label"></label>
         <input name="SearchPhrase" class="form-control" />
@@ -14,11 +14,6 @@
     </div>
 </form>
 
-<p>
-    <form asp-action="Create" method="get" style="display:inline">
-        <button type="submit" class="btn btn-primary">Create New</button>
-    </form>
-</p>
 <table class="table">
     <thead>
         <tr>
@@ -52,18 +47,12 @@
             <td>
                 @Html.DisplayFor(modelItem => item.PhoneNum)
             </td>
-                <td>
-                    @(item.Skillsets?.Any() == true
-                                    ? string.Join(", ", item.Skillsets.Select(s => s.SkillName))
-                                    : "")
-                                     </td>
-                                     <td>
-                    @(item.Hobbies?.Any() == true
-                                    ? string.Join(", ", item.Hobbies.Select(h => h.HobbyName))
-                                    : "")
+            <td>
+                @Html.DisplayFor(modelItem => item.Skillsets)
             </td>
-
-
+            <td>
+                @Html.DisplayFor(modelItem => item.Hobbies)
+            </td>
             <td>
                 <form asp-action="Edit" method="get" style="display:inline">
                     <input type="hidden" name="id" value="@item.Id" />
@@ -77,9 +66,9 @@
                         <input type="hidden" name="id" value="@item.Id" />
                         <button type="submit" class="btn btn-danger">Delete</button>
                     </form>
-                        <form asp-action="Archive" method="post" style="display:inline">
+                        <form asp-action="Unarchive" method="post" style="display:inline">
                             <input type="hidden" name="id" value="@item.Id" />
-                            <button type="submit" class="btn btn-warning">Archive</button>
+                            <button type="submit" class="btn btn-success">Unarchive</button>
                         </form>
             </td>
         </tr>

@@ -10,32 +10,40 @@ namespace TechAssessment.Controllers
     public class FreelancersController : Controller
     {
         private readonly IConfiguration _configuration;
-        private readonly FreelancerRepository _freelancerRepository;
+        private readonly IFreelancerRepository _freelancerRepository;
 
-        public FreelancersController(IConfiguration configuration)
+        public FreelancersController(IConfiguration configuration, IFreelancerRepository freelancerRepository)
         {
             _configuration = configuration;
-            _freelancerRepository = new FreelancerRepository(configuration);
+            _freelancerRepository = freelancerRepository;
         }
 
         // GET: Freelancers
         public async Task<IActionResult> Index()
         {
-            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            var freelancers = await connection.QueryAsync<Freelancer>("SELECT * FROM Freelancer");
+            var freelancers = await _freelancerRepository.GetAllFreelancersAsync();
             return View(freelancers);
         }
 
         // GET: Freelancers/ShowSearchForm
         public IActionResult ShowSearchForm() => View();
 
-        // POST: Freelancers/ShowSearchResults
-        public async Task<IActionResult> ShowSearchResults(string SearchPhrase)
+        // POST: Freelancers/ShowSearchResultsUnarchived
+        public async Task<IActionResult> ShowSearchResultsUnarchived(string SearchPhrase)
         {
             using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            var sql = "SELECT * FROM Freelancer WHERE Username LIKE @SearchPhrase";
+            var sql = "SELECT * FROM Freelancer WHERE Username LIKE @SearchPhrase OR Email LIKE @SearchPhrase AND IsArchived = 0";
             var freelancers = await connection.QueryAsync<Freelancer>(sql, new { SearchPhrase = $"%{SearchPhrase}%" });
             return View("Index", freelancers);
+        }
+
+        // POST: Freelancers/ShowSearchResultsUnarchived
+        public async Task<IActionResult> ShowSearchResultsArchived(string SearchPhrase)
+        {
+            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            var sql = "SELECT * FROM Freelancer WHERE Username LIKE @SearchPhrase OR Email LIKE @SearchPhrase AND IsArchived = 1";
+            var freelancers = await connection.QueryAsync<Freelancer>(sql, new { SearchPhrase = $"%{SearchPhrase}%" });
+            return View("Archive", freelancers);
         }
 
         // GET: Freelancers/Details/5
@@ -43,7 +51,7 @@ namespace TechAssessment.Controllers
         {
             if (id is null) return NotFound();
 
-            var freelancer = await _freelancerRepository.GetFreelancerWithDetailsAsync(id.Value);
+            var freelancer = await _freelancerRepository.GetFreelancerDetailsAsync(id.Value);
             return freelancer is null ? NotFound() : View(freelancer);
         }
 
@@ -51,165 +59,41 @@ namespace TechAssessment.Controllers
         public IActionResult Create() => View();
 
         // Add these parameters to the Create action method signature
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Freelancer freelancer, string Skillsets, string Hobbies)
         {
-
             if (!ModelState.IsValid) return View(freelancer);
 
+            await _freelancerRepository.CreateFreelancerAsync(freelancer, Skillsets, Hobbies);
 
-
-            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-
-            await connection.OpenAsync();
-
-            using var transaction = connection.BeginTransaction();
-
-
-
-            try
-
-            {
-
-                var insertSql = @"
-                            INSERT INTO Freelancer (Username, Email, PhoneNum)
-                            VALUES (@Username, @Email, @PhoneNum);
-                            SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
-
-
-                var freelancerId = await connection.ExecuteScalarAsync<int>(insertSql, freelancer, transaction);
-
-
-
-                // Skillsets
-
-                if (!string.IsNullOrWhiteSpace(Skillsets))
-
-                {
-
-                    var skillList = Skillsets.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim());
-
-                    foreach (var skill in skillList)
-
-                    {
-
-                        var insertSkillSql = "INSERT INTO Skillset (FreelancerId, SkillName) VALUES (@FreelancerId, @Name);";
-
-                        await connection.ExecuteAsync(insertSkillSql, new { FreelancerId = freelancerId, Name = skill }, transaction);
-
-                    }
-
-                }
-
-
-
-                // Hobbies
-
-                if (!string.IsNullOrWhiteSpace(Hobbies))
-
-                {
-
-                    var hobbyList = Hobbies.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(h => h.Trim());
-
-                    foreach (var hobby in hobbyList)
-
-                    {
-
-                        var insertHobbySql = "INSERT INTO Hobby (FreelancerId, HobbyName) VALUES (@FreelancerId, @Name);";
-
-                        await connection.ExecuteAsync(insertHobbySql, new { FreelancerId = freelancerId, Name = hobby }, transaction);
-
-                    }
-
-                }
-
-
-
-                transaction.Commit();
-
-                return RedirectToAction(nameof(Index));
-
-            }
-
-            catch
-
-            {
-
-                transaction.Rollback();
-
-                throw;
-
-            }
-
-        }
+            return RedirectToAction(nameof(Index));
+        }
 
         // GET: Freelancers/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id is null) return NotFound();
 
-            var freelancer = await _freelancerRepository.GetFreelancerWithDetailsAsync(id.Value);
+            var freelancer = await _freelancerRepository.GetFreelancerDetailsAsync(id.Value);
             return freelancer is null ? NotFound() : View(freelancer);
         }
 
         // POST: Freelancers/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Freelancer freelancer)
+        public async Task<IActionResult> Edit(int id, Freelancer freelancer, string SkillsetsInput, string HobbiesInput)
         {
             if (id != freelancer.Id) return NotFound();
             if (!ModelState.IsValid) return View(freelancer);
 
-            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            await connection.OpenAsync();
-            using var transaction = connection.BeginTransaction();
+            // Parse inputs to lists if needed
+            var skillList = SkillsetsInput?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList() ?? new List<string>();
+            var hobbyList = HobbiesInput?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(h => h.Trim()).ToList() ?? new List<string>();
 
-            try
-            {
-                var updateSql = @"
-                    UPDATE Freelancer 
-                    SET Username = @Username, Email = @Email, PhoneNum = @PhoneNum 
-                    WHERE Id = @Id;";
-                await connection.ExecuteAsync(updateSql, freelancer, transaction);
+            await _freelancerRepository.UpdateFreelancerAsync(freelancer);
 
-                // Delete old and re-insert new Skillsets
-                await connection.ExecuteAsync("DELETE FROM Skillset WHERE FreelancerId = @Id", new { Id = id }, transaction);
-                if (freelancer.Skillsets?.Any() == true)
-                {
-                    foreach (var skill in freelancer.Skillsets)
-                    {
-                        skill.FreelancerId = id;
-                        await connection.ExecuteAsync(
-                            "INSERT INTO Skillset (FreelancerId, Name) VALUES (@FreelancerId, @Name);",
-                            skill, transaction
-                        );
-                    }
-                }
-
-                // Delete old and re-insert new Hobbies
-                await connection.ExecuteAsync("DELETE FROM Hobby WHERE FreelancerId = @Id", new { Id = id }, transaction);
-                if (freelancer.Hobbies?.Any() == true)
-                {
-                    foreach (var hobby in freelancer.Hobbies)
-                    {
-                        hobby.FreelancerId = id;
-                        await connection.ExecuteAsync(
-                            "INSERT INTO Hobby (FreelancerId, Name) VALUES (@FreelancerId, @Name);",
-                            hobby, transaction
-                        );
-                    }
-                }
-
-                transaction.Commit();
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Freelancers/Delete/5
@@ -243,6 +127,25 @@ namespace TechAssessment.Controllers
                 "SELECT IIF(EXISTS(SELECT 1 FROM Freelancer WHERE Id = @Id), 1, 0)",
                 new { Id = id });
             return exists == 1;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Archive(int id)
+        {
+            await _freelancerRepository.ArchiveFreelancer(id);
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Unarchive(int id)
+        {
+            await _freelancerRepository.UnarchiveFreelancer(id);
+            return RedirectToAction("Index");
+        }
+        public async Task<IActionResult> ViewArchive()
+        {
+            var archivedFreelancers = await _freelancerRepository.GetArchivedFreelancers();
+            return View("Archive", archivedFreelancers); 
         }
     }
 }
