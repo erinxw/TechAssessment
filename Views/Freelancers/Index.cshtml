@@ -68,15 +68,15 @@
                 <form asp-action="Edit" method="get" style="display:inline">
                     <input type="hidden" name="id" value="@item.Id" />
                     <button type="submit" class="btn btn-primary">Edit</button>
-                </form>
+                    </form> |
                     <form asp-action="Details" method="get" style="display:inline">
                         <input type="hidden" name="id" value="@item.Id" />
                         <button type="submit" class="btn btn-info">Details</button>
-                    </form>
+                    </form> |
                     <form asp-action="Delete" method="get" style="display:inline">
                         <input type="hidden" name="id" value="@item.Id" />
                         <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
+                    </form> |
                         <form asp-action="Archive" method="post" style="display:inline">
                             <input type="hidden" name="id" value="@item.Id" />
                             <button type="submit" class="btn btn-warning">Archive</button>

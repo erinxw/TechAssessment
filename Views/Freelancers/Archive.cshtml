@@ -17,60 +17,48 @@
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Username)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Email)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PhoneNum)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Skillsets)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Hobbies)
-            </th>
+            <th>@Html.DisplayNameFor(model => model.Username)</th>
+            <th>@Html.DisplayNameFor(model => model.Email)</th>
+            <th>@Html.DisplayNameFor(model => model.PhoneNum)</th>
+            <th>@Html.DisplayNameFor(model => model.Skillsets)</th>
+            <th>@Html.DisplayNameFor(model => model.Hobbies)</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Username)
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Username)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Email)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PhoneNum)
+                </td>
+                <td>
+                    @(item.Skillsets?.Any() == true
+                                    ? string.Join(", ", item.Skillsets.Select(s => s.SkillName))
+                                    : "")
+                                     </td>
+                                     <td>
+                    @(item.Hobbies?.Any() == true
+                                    ? string.Join(", ", item.Hobbies.Select(h => h.HobbyName))
+                                    : "")
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PhoneNum)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Skillsets)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Hobbies)
-            </td>
-            <td>
-                <form asp-action="Edit" method="get" style="display:inline">
+                <form asp-action="Details" method="get" style="display:inline">
                     <input type="hidden" name="id" value="@item.Id" />
-                    <button type="submit" class="btn btn-primary">Edit</button>
+                    <button type="submit" class="btn btn-info">Details</button>
+                </form> |
+                <form asp-action="Unarchive" method="post" style="display:inline">
+                    <input type="hidden" name="id" value="@item.Id" />
+                    <button type="submit" class="btn btn-success">Unarchive</button>
                 </form>
-                        <input type="hidden" name="id" value="@item.Id" />
-                        <button type="submit" class="btn btn-info">Details</button>
-                    </form>
-                    <form asp-action="Delete" method="get" style="display:inline">
-                        <input type="hidden" name="id" value="@item.Id" />
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                        <form asp-action="Unarchive" method="post" style="display:inline">
-                            <input type="hidden" name="id" value="@item.Id" />
-                            <button type="submit" class="btn btn-success">Unarchive</button>
-                        </form>
             </td>
         </tr>
-}
+                }
     </tbody>
 </table>

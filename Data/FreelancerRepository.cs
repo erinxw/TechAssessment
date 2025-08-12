@@ -62,7 +62,7 @@ namespace TechAssessment.Data
         FROM Freelancer f
         LEFT JOIN Skillset s ON s.FreelancerId = f.Id
         LEFT JOIN Hobby h ON h.FreelancerId = f.Id
-        WHERE f.Id = @Id AND f.IsArchived = 0";
+        WHERE f.Id = @Id";
 
             var freelancerDict = new Dictionary<int, Freelancer>();
 
@@ -208,7 +208,36 @@ namespace TechAssessment.Data
         public async Task<IEnumerable<Freelancer>> GetArchivedFreelancers()
         {
             using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            return await connection.QueryAsync<Freelancer>("SELECT * FROM Freelancer WHERE IsArchived = 1");
+
+            var sql = @"
+        SELECT f.*, s.Id, s.SkillName, h.Id, h.HobbyName
+        FROM Freelancer f
+        LEFT JOIN Skillset s ON f.Id = s.FreelancerId
+        LEFT JOIN Hobby h ON f.Id = h.FreelancerId
+        WHERE f.IsArchived = 1";
+
+            var lookup = new Dictionary<int, Freelancer>();
+
+            await connection.QueryAsync<Freelancer, Skillset, Hobby, Freelancer>(
+                sql,
+                (freelancer, skill, hobby) =>
+                {
+                    if (!lookup.TryGetValue(freelancer.Id, out var f))
+                    {
+                        f = freelancer;
+                        f.Skillsets = new List<Skillset>();
+                        f.Hobbies = new List<Hobby>();
+                        lookup.Add(f.Id, f);
+                    }
+                    if (skill != null && !f.Skillsets.Any(s => s.SkillName == skill.SkillName))
+                        f.Skillsets.Add(skill);
+                    if (hobby != null && !f.Hobbies.Any(h => h.HobbyName == hobby.HobbyName))
+                        f.Hobbies.Add(hobby);
+                    return f;
+                }
+            );
+
+            return lookup.Values;
         }
     }
 }

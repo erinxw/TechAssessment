@@ -32,7 +32,7 @@ namespace TechAssessment.Controllers
         public async Task<IActionResult> ShowSearchResultsUnarchived(string SearchPhrase)
         {
             using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            var sql = "SELECT * FROM Freelancer WHERE Username LIKE @SearchPhrase OR Email LIKE @SearchPhrase AND IsArchived = 0";
+            var sql = "SELECT * FROM Freelancer WHERE (Username LIKE @SearchPhrase OR Email LIKE @SearchPhrase) AND IsArchived = 0";
             var freelancers = await connection.QueryAsync<Freelancer>(sql, new { SearchPhrase = $"%{SearchPhrase}%" });
             return View("Index", freelancers);
         }
@@ -41,7 +41,7 @@ namespace TechAssessment.Controllers
         public async Task<IActionResult> ShowSearchResultsArchived(string SearchPhrase)
         {
             using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            var sql = "SELECT * FROM Freelancer WHERE Username LIKE @SearchPhrase OR Email LIKE @SearchPhrase AND IsArchived = 1";
+            var sql = "SELECT * FROM Freelancer WHERE (Username LIKE @SearchPhrase OR Email LIKE @SearchPhrase) AND IsArchived = 1";
             var freelancers = await connection.QueryAsync<Freelancer>(sql, new { SearchPhrase = $"%{SearchPhrase}%" });
             return View("Archive", freelancers);
         }
@@ -49,7 +49,7 @@ namespace TechAssessment.Controllers
         // GET: Freelancers/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            var freelancer = await _freelancerRepository.GetFreelancerDetailsAsync(id);
+            if (id is null) return NotFound();
 
             var freelancer = await _freelancerRepository.GetFreelancerDetailsAsync(id.Value);
             return freelancer is null ? NotFound() : View(freelancer);
@@ -87,9 +87,16 @@ namespace TechAssessment.Controllers
             if (id != freelancer.Id) return NotFound();
             if (!ModelState.IsValid) return View(freelancer);
 
-            // Parse inputs to lists if needed
-            var skillList = SkillsetsInput?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList() ?? new List<string>();
-            var hobbyList = HobbiesInput?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(h => h.Trim()).ToList() ?? new List<string>();
+            // Parse and assign back to the freelancer object
+            freelancer.Skillsets = SkillsetsInput?
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => new Skillset { FreelancerId = freelancer.Id, SkillName = s.Trim() })
+                .ToList() ?? new List<Skillset>();
+
+            freelancer.Hobbies = HobbiesInput?
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(h => new Hobby { FreelancerId = freelancer.Id, HobbyName = h.Trim() })
+                .ToList() ?? new List<Hobby>();
 
             await _freelancerRepository.UpdateFreelancerAsync(freelancer);
 
@@ -101,9 +108,7 @@ namespace TechAssessment.Controllers
         {
             if (id is null) return NotFound();
 
-            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            var freelancer = await connection.QueryFirstOrDefaultAsync<Freelancer>("SELECT * FROM Freelancer WHERE Id = @Id", new { Id = id });
-
+            var freelancer = await _freelancerRepository.GetFreelancerDetailsAsync(id.Value);
             return freelancer is null ? NotFound() : View(freelancer);
         }
 
