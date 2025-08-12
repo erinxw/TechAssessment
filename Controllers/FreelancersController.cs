@@ -37,7 +37,7 @@ namespace TechAssessment.Controllers
             return View("Index", freelancers);
         }
 
-        // POST: Freelancers/ShowSearchResultsUnarchived
+        // POST: Freelancers/ShowSearchResultsArchived
         public async Task<IActionResult> ShowSearchResultsArchived(string SearchPhrase)
         {
             using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));

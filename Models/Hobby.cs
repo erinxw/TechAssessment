@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace TechAssessment.Models
 {
@@ -6,8 +7,9 @@ namespace TechAssessment.Models
     {
         public int Id { get; set; }
         public int FreelancerId { get; set; }
-        public string HobbyName { get; set; }
+        public string? HobbyName { get; set; }
 
-        public Freelancer Freelancer { get; set; }
+        [JsonIgnore]
+        public Freelancer? Freelancer { get; set; }
     }
 }

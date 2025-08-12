@@ -24,27 +24,61 @@ namespace TechAssessment.Controllers.Api
             return new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
         }
 
-        // GET: api/<APIController>
+        // GET: api/FreelancersAPI
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             using var connection = GetConnection();
-            var sql = "SELECT * FROM Freelancer";
-            var freelancers = await connection.QueryAsync<Freelancer>(sql);
+
+            var freelancers = (await connection.QueryAsync<Freelancer>("SELECT * FROM Freelancer WHERE IsArchived = 0")).ToList();
+
+            var freelancerIds = freelancers.Select(f => f.Id).ToList();
+
+            var skillsets = await connection.QueryAsync<Skillset>(
+                "SELECT * FROM Skillset WHERE FreelancerId IN @Ids",
+                new { Ids = freelancerIds });
+
+            var hobbies = await connection.QueryAsync<Hobby>(
+                "SELECT * FROM Hobby WHERE FreelancerId IN @Ids",
+                new { Ids = freelancerIds });
+
+            foreach (var freelancer in freelancers)
+            {
+                freelancer.Skillsets = skillsets.Where(s => s.FreelancerId == freelancer.Id).ToList();
+                freelancer.Hobbies = hobbies.Where(h => h.FreelancerId == freelancer.Id).ToList();
+            }
+
             return Ok(freelancers);
         }
 
-        // GET: api/<APIController>/archived
+        // GET: api/FreelancersAPI/archived
         [HttpGet("archived")]
         public async Task<IActionResult> GetArchived()
         {
             using var connection = GetConnection();
-            var sql = "SELECT * FROM Freelancer WHERE IsArchived = 1";
-            var freelancers = await connection.QueryAsync<Freelancer>(sql);
+
+            var freelancers = (await connection.QueryAsync<Freelancer>("SELECT * FROM Freelancer WHERE IsArchived = 1")).ToList();
+
+            var freelancerIds = freelancers.Select(f => f.Id).ToList();
+
+            var skillsets = await connection.QueryAsync<Skillset>(
+                "SELECT * FROM Skillset WHERE FreelancerId IN @Ids",
+                new { Ids = freelancerIds });
+
+            var hobbies = await connection.QueryAsync<Hobby>(
+                "SELECT * FROM Hobby WHERE FreelancerId IN @Ids",
+                new { Ids = freelancerIds });
+
+            foreach (var freelancer in freelancers)
+            {
+                freelancer.Skillsets = skillsets.Where(s => s.FreelancerId == freelancer.Id).ToList();
+                freelancer.Hobbies = hobbies.Where(h => h.FreelancerId == freelancer.Id).ToList();
+            }
+
             return Ok(freelancers);
         }
 
-        // GET: api/<APIController>/unarchived
+        // GET: api/FreelancersAPI/unarchived
         [HttpGet("unarchived")]
         public async Task<IActionResult> GetUnarchived()
         {
@@ -54,7 +88,7 @@ namespace TechAssessment.Controllers.Api
             return Ok(freelancers);
         }
 
-        // GET: api/<APIController>/search?searchPhrase={searchPhrase}
+        // GET: api/FreelancersAPI/search?searchPhrase={searchPhrase}
         [HttpGet("search")]
         public async Task<IActionResult> Search([FromQuery] string searchPhrase, [FromQuery] bool archived = false)
         {
@@ -69,7 +103,7 @@ namespace TechAssessment.Controllers.Api
             return Ok(freelancers);
         }
 
-        // GET: api/<APIController>/5
+        // GET: api/FreelancersAPI/id
         [HttpGet("{id}")]
         public async Task<IActionResult> Details(int id)
         {
@@ -89,7 +123,7 @@ namespace TechAssessment.Controllers.Api
             return Ok(freelancer);
         }
 
-        // POST: api/<APIController>
+        // POST: api/FreelancersAPI
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Freelancer freelancer)
         {
@@ -125,7 +159,7 @@ namespace TechAssessment.Controllers.Api
             return CreatedAtAction(nameof(Details), new { id = newId }, freelancer);
         }
 
-        // PUT: api/<APIController>/5
+        // PUT: api/FreelancersAPI/id
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] Freelancer freelancer)
         {
@@ -170,7 +204,7 @@ namespace TechAssessment.Controllers.Api
             return NoContent();
         }
 
-        // PATCH: api/<APIController>/5/archive
+        // PATCH: api/FreelancersAPI/id/archive
         [HttpPatch("{id}/archive")]
         public async Task<IActionResult> Archive(int id)
         {
@@ -184,7 +218,7 @@ namespace TechAssessment.Controllers.Api
             return NoContent();
         }
 
-        // PATCH: api/<APIController>/5/unarchive
+        // PATCH: api/FreelancersAPI/id/unarchive
         [HttpPatch("{id}/unarchive")]
         public async Task<IActionResult> Unarchive(int id)
         {
@@ -198,7 +232,7 @@ namespace TechAssessment.Controllers.Api
             return NoContent();
         }
 
-        // DELETE: api/<APIController>/5
+        // DELETE: api/FreelancersAPI/id
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

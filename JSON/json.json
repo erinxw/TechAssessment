@@ -1,0 +1,12 @@
+{
+    "Username": "nono",
+    "Email": "nono@example.com",
+    "PhoneNum": "0123456789",
+    "Skillsets": [
+        { "SkillName": "C#" },
+        { "SkillName": "React" }
+    ],
+    "Hobbies": [
+        { "HobbyName": "Photography" }
+    ]
+}
