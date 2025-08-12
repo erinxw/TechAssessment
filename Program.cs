@@ -2,6 +2,9 @@ using TechAssessment.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Tell Kestrel to listen on these URLs explicitly
+builder.WebHost.UseUrls("http://localhost:5095", "https://localhost:7202");
+
 // Only add API controllers (no Views)
 builder.Services.AddControllers();
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
@@ -19,7 +22,7 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthorization();
 
