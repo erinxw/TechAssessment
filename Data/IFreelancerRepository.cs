@@ -1,17 +1,18 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using TechAssessment.Models;
+﻿using TechAssessment.Models;
 
 namespace TechAssessment.Data
 {
     public interface IFreelancerRepository
     {
-        Task<IEnumerable<Freelancer>> GetAllFreelancersAsync();
-        Task<Freelancer> GetFreelancerDetailsAsync(int id);
-        Task ArchiveFreelancer(int id);
-        Task UnarchiveFreelancer(int id);
-        Task<IEnumerable<Freelancer>> GetArchivedFreelancers();
-        Task<Freelancer> CreateFreelancerAsync(Freelancer freelancer, string skillsets, string hobbies);
-        Task UpdateFreelancerAsync(Freelancer freelancer);
+        Task<IEnumerable<Freelancer>> GetAllAsync();
+        Task<IEnumerable<Freelancer>> GetArchivedAsync();
+        Task<IEnumerable<Freelancer>> GetUnarchivedAsync();
+        Task<Freelancer?> GetByIdAsync(int id);
+        Task<IEnumerable<Freelancer>> SearchAsync(string searchPhrase, bool archived = false);
+        Task<int> CreateAsync(Freelancer freelancer);
+        Task<bool> UpdateAsync(Freelancer freelancer);
+        Task<bool> ArchiveAsync(int id);
+        Task<bool> UnarchiveAsync(int id);
+        Task<bool> DeleteAsync(int id);
     }
 }

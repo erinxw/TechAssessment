@@ -1,6 +1,6 @@
 {
-    "Username": "nono",
-    "Email": "nono@example.com",
+    "Username": "ali",
+    "Email": "ali@test.com",
     "PhoneNum": "0123456789",
     "Skillsets": [
         { "SkillName": "C#" },
@@ -8,5 +8,34 @@
     ],
     "Hobbies": [
         { "HobbyName": "Photography" }
+    ]
+}
+
+{
+    "Username": "ali",
+    "Email": "ali@test.com",
+    "PhoneNum": "0123456789",
+    "Skillsets": [
+        { "SkillName": "C#" },
+        { "SkillName": "React" }
+    ],
+    "Hobbies": [
+        { "HobbyName": "Photography" },
+	{ "HobbyName": "Reading" }
+    ]
+}
+
+{
+    "Username": "siti",
+    "Email": "siti@test.com",
+    "PhoneNum": "01122334455",
+    "Skillsets": [
+        { "SkillName": "HTML" },
+        { "SkillName": "Java" },
+	{ "SkillName": "Python" }
+    ],
+    "Hobbies": [
+        { "HobbyName": "Cooking" },
+	{ "HobbyName": "Reading" }
     ]
 }

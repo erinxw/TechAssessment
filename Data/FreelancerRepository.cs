@@ -1,5 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
-using Dapper;
+﻿using Dapper;
+using Microsoft.Data.SqlClient;
 using TechAssessment.Models;
 
 namespace TechAssessment.Data
@@ -13,231 +13,164 @@ namespace TechAssessment.Data
             _configuration = configuration;
         }
 
-        public async Task<IEnumerable<Freelancer>> GetAllFreelancersAsync()
+        private SqlConnection GetConnection() =>
+            new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+        public async Task<IEnumerable<Freelancer>> GetAllAsync()
         {
-            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-
-            var sql = @"
-        SELECT f.*, s.Id, s.SkillName, h.Id, h.HobbyName
-        FROM Freelancer f
-        LEFT JOIN Skillset s ON s.FreelancerId = f.Id
-        LEFT JOIN Hobby h ON h.FreelancerId = f.Id
-        WHERE f.IsArchived = 0
-        ORDER BY f.Id";
-
-            var freelancerDict = new Dictionary<int, Freelancer>();
-
-            var result = await connection.QueryAsync<Freelancer, Skillset, Hobby, Freelancer>(
-                sql,
-                (f, s, h) =>
-                {
-                    if (!freelancerDict.TryGetValue(f.Id, out var current))
-                    {
-                        current = f;
-                        current.Skillsets = new List<Skillset>();
-                        current.Hobbies = new List<Hobby>();
-                        freelancerDict.Add(current.Id, current);
-                    }
-
-                    if (s != null && !current.Skillsets.Any(x => x.Id == s.Id))
-                        current.Skillsets.Add(s);
-
-                    if (h != null && !current.Hobbies.Any(x => x.Id == h.Id))
-                        current.Hobbies.Add(h);
-
-                    return current;
-                },
-                splitOn: "Id,Id"
-            );
-
-            return freelancerDict.Values;
+            using var connection = GetConnection();
+            var freelancers = (await connection.QueryAsync<Freelancer>("SELECT * FROM Freelancer")).ToList();
+            await LoadRelatedData(connection, freelancers);
+            return freelancers;
         }
 
-        public async Task<Freelancer> GetFreelancerDetailsAsync(int id)
+        public async Task<IEnumerable<Freelancer>> GetArchivedAsync()
         {
-            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-
-            var sql = @"
-        SELECT f.*, s.Id, s.SkillName, h.Id, h.HobbyName
-        FROM Freelancer f
-        LEFT JOIN Skillset s ON s.FreelancerId = f.Id
-        LEFT JOIN Hobby h ON h.FreelancerId = f.Id
-        WHERE f.Id = @Id";
-
-            var freelancerDict = new Dictionary<int, Freelancer>();
-
-            var freelancers = await connection.QueryAsync<Freelancer, Skillset, Hobby, Freelancer>(
-                sql,
-                (f, s, h) =>
-                {
-                    if (!freelancerDict.TryGetValue(f.Id, out var current))
-                    {
-                        current = f;
-                        current.Skillsets = new List<Skillset>();
-                        current.Hobbies = new List<Hobby>();
-                        freelancerDict.Add(current.Id, current);
-                    }
-
-                    if (s != null && !current.Skillsets.Any(x => x.Id == s.Id))
-                        current.Skillsets.Add(s);
-
-                    if (h != null && !current.Hobbies.Any(x => x.Id == h.Id))
-                        current.Hobbies.Add(h);
-
-                    return current;
-                },
-                new { Id = id },
-                splitOn: "Id,Id"
-            );
-
-            // Ensure lists are never null
-            var result = freelancerDict.Values.FirstOrDefault();
-            if (result != null)
-            {
-                result.Skillsets ??= new List<Skillset>();
-                result.Hobbies ??= new List<Hobby>();
-            }
-
-            return result;
+            using var connection = GetConnection();
+            var freelancers = (await connection.QueryAsync<Freelancer>("SELECT * FROM Freelancer WHERE IsArchived = 1")).ToList();
+            await LoadRelatedData(connection, freelancers);
+            return freelancers;
         }
 
-        // Create freelancer
-        public async Task<Freelancer> CreateFreelancerAsync(Freelancer freelancer, string Skillsets, string Hobbies)
+        public async Task<IEnumerable<Freelancer>> GetUnarchivedAsync()
         {
-            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            await connection.OpenAsync();
-
-            using var transaction = connection.BeginTransaction();
-
-            try
-            {
-                var insertSql = @"
-            INSERT INTO Freelancer (Username, Email, PhoneNum)
-            VALUES (@Username, @Email, @PhoneNum);
-            SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
-                // Insert freelancer and get generated Id
-                var freelancerId = await connection.ExecuteScalarAsync<int>(insertSql, freelancer, transaction);
-
-                // Insert Skillsets
-                if (!string.IsNullOrWhiteSpace(Skillsets))
-                {
-                    var skillList = Skillsets.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim());
-                    foreach (var skill in skillList)
-                    {
-                        var insertSkillSql = "INSERT INTO Skillset (FreelancerId, SkillName) VALUES (@FreelancerId, @Name);";
-                        await connection.ExecuteAsync(insertSkillSql, new { FreelancerId = freelancerId, Name = skill }, transaction);
-                    }
-                }
-
-                // Insert Hobbies
-                if (!string.IsNullOrWhiteSpace(Hobbies))
-                {
-                    var hobbyList = Hobbies.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(h => h.Trim());
-                    foreach (var hobby in hobbyList)
-                    {
-                        var insertHobbySql = "INSERT INTO Hobby (FreelancerId, HobbyName) VALUES (@FreelancerId, @Name);";
-                        await connection.ExecuteAsync(insertHobbySql, new { FreelancerId = freelancerId, Name = hobby }, transaction);
-                    }
-                }
-
-                transaction.Commit();
-
-                // Set the Id of the freelancer object before returning
-                freelancer.Id = freelancerId;
-                return freelancer;
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
+            using var connection = GetConnection();
+            var freelancers = (await connection.QueryAsync<Freelancer>("SELECT * FROM Freelancer WHERE IsArchived = 0")).ToList();
+            await LoadRelatedData(connection, freelancers);
+            return freelancers;
         }
 
-        public async Task UpdateFreelancerAsync(Freelancer freelancer)
+        public async Task<Freelancer?> GetByIdAsync(int id)
         {
-            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            await connection.OpenAsync();
-            using var transaction = connection.BeginTransaction();
-
-            try
+            using var connection = GetConnection();
+            var freelancer = await connection.QuerySingleOrDefaultAsync<Freelancer>(
+                "SELECT * FROM Freelancer WHERE Id = @Id", new { Id = id });
+            if (freelancer != null)
             {
-                var updateSql = @"UPDATE Freelancer 
-                          SET Username = @Username, Email = @Email, PhoneNum = @PhoneNum 
-                          WHERE Id = @Id;";
-                await connection.ExecuteAsync(updateSql, freelancer, transaction);
+                freelancer.Skillsets = (await connection.QueryAsync<Skillset>(
+                    "SELECT * FROM Skillset WHERE FreelancerId = @Id", new { Id = id })).ToList();
+                freelancer.Hobbies = (await connection.QueryAsync<Hobby>(
+                    "SELECT * FROM Hobby WHERE FreelancerId = @Id", new { Id = id })).ToList();
+            }
+            return freelancer;
+        }
 
-                await connection.ExecuteAsync("DELETE FROM Skillset WHERE FreelancerId = @Id", new { Id = freelancer.Id }, transaction);
-                await connection.ExecuteAsync("DELETE FROM Hobby WHERE FreelancerId = @Id", new { Id = freelancer.Id }, transaction);
+        public async Task<IEnumerable<Freelancer>> SearchAsync(string searchPhrase, bool archived = false)
+        {
+            using var connection = GetConnection();
+            var sql = @"SELECT * FROM Freelancer
+                        WHERE (Username LIKE @SearchPhrase OR Email LIKE @SearchPhrase OR PhoneNum LIKE @SearchPhrase)
+                        AND IsArchived = @Archived";
+            var freelancers = (await connection.QueryAsync<Freelancer>(
+                sql, new { SearchPhrase = $"%{searchPhrase}%", Archived = archived ? 1 : 0 })).ToList();
+            await LoadRelatedData(connection, freelancers);
+            return freelancers;
+        }
 
+        public async Task<int> CreateAsync(Freelancer freelancer)
+        {
+            using var connection = GetConnection();
+            var sql = @"INSERT INTO Freelancer (Username, Email, PhoneNum, IsArchived)
+                        VALUES (@Username, @Email, @PhoneNum, 0);
+                        SELECT CAST(SCOPE_IDENTITY() as int)";
+            var newId = await connection.ExecuteScalarAsync<int>(sql, freelancer);
+
+            if (freelancer.Skillsets != null)
+            {
                 foreach (var skill in freelancer.Skillsets)
                 {
+                    skill.FreelancerId = newId;
                     await connection.ExecuteAsync(
-                        "INSERT INTO Skillset (FreelancerId, SkillName) VALUES (@FreelancerId, @SkillName);",
-                        skill, transaction);
+                        "INSERT INTO Skillset (FreelancerId, SkillName) VALUES (@FreelancerId, @SkillName)",
+                        skill);
                 }
+            }
 
+            if (freelancer.Hobbies != null)
+            {
                 foreach (var hobby in freelancer.Hobbies)
                 {
+                    hobby.FreelancerId = newId;
                     await connection.ExecuteAsync(
-                        "INSERT INTO Hobby (FreelancerId, HobbyName) VALUES (@FreelancerId, @HobbyName);",
-                        hobby, transaction);
+                        "INSERT INTO Hobby (FreelancerId, HobbyName) VALUES (@FreelancerId, @HobbyName)",
+                        hobby);
                 }
-
-                transaction.Commit();
             }
-            catch
+
+            return newId;
+        }
+
+        public async Task<bool> UpdateAsync(Freelancer freelancer)
+        {
+            using var connection = GetConnection();
+            var sql = @"UPDATE Freelancer
+                        SET Username = @Username, Email = @Email, PhoneNum = @PhoneNum, IsArchived = @IsArchived
+                        WHERE Id = @Id";
+            var affected = await connection.ExecuteAsync(sql, freelancer);
+            if (affected == 0) return false;
+
+            await connection.ExecuteAsync("DELETE FROM Skillset WHERE FreelancerId = @Id", new { freelancer.Id });
+            if (freelancer.Skillsets != null)
             {
-                transaction.Rollback();
-                throw;
-            }
-        }
-
-        public async Task ArchiveFreelancer(int id)
-        {
-            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            await connection.ExecuteAsync("UPDATE Freelancer SET IsArchived = 1 WHERE Id = @Id", new { Id = id });
-        }
-
-        public async Task UnarchiveFreelancer(int id)
-        {
-            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            await connection.ExecuteAsync("UPDATE Freelancer SET IsArchived = 0 WHERE Id = @Id", new { Id = id });
-        }
-
-        public async Task<IEnumerable<Freelancer>> GetArchivedFreelancers()
-        {
-            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-
-            var sql = @"
-        SELECT f.*, s.Id, s.SkillName, h.Id, h.HobbyName
-        FROM Freelancer f
-        LEFT JOIN Skillset s ON f.Id = s.FreelancerId
-        LEFT JOIN Hobby h ON f.Id = h.FreelancerId
-        WHERE f.IsArchived = 1";
-
-            var lookup = new Dictionary<int, Freelancer>();
-
-            await connection.QueryAsync<Freelancer, Skillset, Hobby, Freelancer>(
-                sql,
-                (freelancer, skill, hobby) =>
+                foreach (var skill in freelancer.Skillsets)
                 {
-                    if (!lookup.TryGetValue(freelancer.Id, out var f))
-                    {
-                        f = freelancer;
-                        f.Skillsets = new List<Skillset>();
-                        f.Hobbies = new List<Hobby>();
-                        lookup.Add(f.Id, f);
-                    }
-                    if (skill != null && !f.Skillsets.Any(s => s.SkillName == skill.SkillName))
-                        f.Skillsets.Add(skill);
-                    if (hobby != null && !f.Hobbies.Any(h => h.HobbyName == hobby.HobbyName))
-                        f.Hobbies.Add(hobby);
-                    return f;
+                    skill.FreelancerId = freelancer.Id;
+                    await connection.ExecuteAsync(
+                        "INSERT INTO Skillset (FreelancerId, SkillName) VALUES (@FreelancerId, @SkillName)",
+                        skill);
                 }
-            );
+            }
 
-            return lookup.Values;
+            await connection.ExecuteAsync("DELETE FROM Hobby WHERE FreelancerId = @Id", new { freelancer.Id });
+            if (freelancer.Hobbies != null)
+            {
+                foreach (var hobby in freelancer.Hobbies)
+                {
+                    hobby.FreelancerId = freelancer.Id;
+                    await connection.ExecuteAsync(
+                        "INSERT INTO Hobby (FreelancerId, HobbyName) VALUES (@FreelancerId, @HobbyName)",
+                        hobby);
+                }
+            }
+
+            return true;
+        }
+
+        public async Task<bool> ArchiveAsync(int id)
+        {
+            using var connection = GetConnection();
+            return await connection.ExecuteAsync("UPDATE Freelancer SET IsArchived = 1 WHERE Id = @Id", new { Id = id }) > 0;
+        }
+
+        public async Task<bool> UnarchiveAsync(int id)
+        {
+            using var connection = GetConnection();
+            return await connection.ExecuteAsync("UPDATE Freelancer SET IsArchived = 0 WHERE Id = @Id", new { Id = id }) > 0;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            using var connection = GetConnection();
+            await connection.ExecuteAsync("DELETE FROM Skillset WHERE FreelancerId = @Id", new { Id = id });
+            await connection.ExecuteAsync("DELETE FROM Hobby WHERE FreelancerId = @Id", new { Id = id });
+            return await connection.ExecuteAsync("DELETE FROM Freelancer WHERE Id = @Id", new { Id = id }) > 0;
+        }
+
+        private async Task LoadRelatedData(SqlConnection connection, List<Freelancer> freelancers)
+        {
+            if (!freelancers.Any()) return;
+
+            var ids = freelancers.Select(f => f.Id).ToList();
+            var skillsets = await connection.QueryAsync<Skillset>(
+                "SELECT * FROM Skillset WHERE FreelancerId IN @Ids", new { Ids = ids });
+            var hobbies = await connection.QueryAsync<Hobby>(
+                "SELECT * FROM Hobby WHERE FreelancerId IN @Ids", new { Ids = ids });
+
+            foreach (var f in freelancers)
+            {
+                f.Skillsets = skillsets.Where(s => s.FreelancerId == f.Id).ToList();
+                f.Hobbies = hobbies.Where(h => h.FreelancerId == f.Id).ToList();
+            }
         }
     }
 }
