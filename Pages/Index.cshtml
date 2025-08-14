@@ -1,0 +1,29 @@
+﻿@page
+@model TechAssessment.Pages.IndexModel
+@{
+}
+
+<h3>Existing Freelancers</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Phone</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var f in Model.Freelancers)
+        {
+            <tr>
+                <td>@f.Username</td>
+                <td>@f.Email</td>
+                <td>@f.PhoneNum</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

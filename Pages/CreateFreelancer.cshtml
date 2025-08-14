@@ -1,0 +1,36 @@
+﻿@page
+@model TechAssessment.Pages.CreateFreelancerModel
+@using TechAssessment.Models
+
+<h1>Create Freelancer</h1>
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <div class="alert alert-info">@Model.Message</div>
+}
+
+<form method="post">
+    <div class="form-group">
+        <label>Username</label>
+        <input asp-for="Freelancer.Username" class="form-control" />
+        <span asp-validation-for="Freelancer.Username" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label>Email</label>
+        <input asp-for="Freelancer.Email" class="form-control" />
+        <span asp-validation-for="Freelancer.Email" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label>Phone Number</label>
+        <input asp-for="Freelancer.PhoneNum" class="form-control" />
+        <span asp-validation-for="Freelancer.PhoneNum" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

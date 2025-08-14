@@ -7,15 +7,15 @@ namespace TechAssessment.Models;
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Username is required")]
-        public string Username { get; set; }
+        public required string Username { get; set; }
 
         [Required]
         [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
-        public string Email { get; set; }
+        public required string Email { get; set; }
 
         [Required]
         [RegularExpression(@"^\+?[0-9\s\-]{7,20}$", ErrorMessage = "Invalid phone number format.")]
-        public string PhoneNum { get; set; }
+        public required string PhoneNum { get; set; }
 
         public bool IsArchived { get; set; }
 
