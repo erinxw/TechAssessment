@@ -5,7 +5,6 @@ A simple application to manage freelancers, their skillsets, and hobbies, with a
 - Create, read, update, and delete freelancer records
 - Archive and unarchive freelancers
 - Search freelancers by username or email
-- View details of freelancers (including archived ones)
 
 ## Technologies Used
 - ASP.NET Core MVC
