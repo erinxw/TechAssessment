@@ -4,15 +4,18 @@ namespace TechAssessment.Data
 {
     public interface IFreelancerRepository
     {
-        Task<IEnumerable<Freelancer>> GetAllAsync();
-        Task<IEnumerable<Freelancer>> GetArchivedAsync();
-        Task<IEnumerable<Freelancer>> GetUnarchivedAsync();
+        Task<IEnumerable<Freelancer>> GetFreelancersAsync(bool? isArchived = null, string? searchPhrase = null);
+
         Task<Freelancer?> GetByIdAsync(int id);
-        Task<IEnumerable<Freelancer>> SearchAsync(string searchPhrase, bool archived = false);
         Task<int> CreateAsync(Freelancer freelancer);
         Task<bool> UpdateAsync(Freelancer freelancer);
         Task<bool> ArchiveAsync(int id);
         Task<bool> UnarchiveAsync(int id);
         Task<bool> DeleteAsync(int id);
+
+        //Task<IEnumerable<Freelancer>> GetAllAsync();
+        //Task<IEnumerable<Freelancer>> GetArchivedAsync();
+        //Task<IEnumerable<Freelancer>> GetUnarchivedAsync();
+        //Task<IEnumerable<Freelancer>> SearchAsync(string searchPhrase, bool archived = false);
     }
 }

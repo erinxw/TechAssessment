@@ -1,156 +1,83 @@
-﻿using System.Data;
-using Dapper;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.AspNetCore.Mvc;
 using TechAssessment.Data;
 using TechAssessment.Models;
 
-namespace TechAssessment.Controllers
+namespace TechAssessment.Controllers.Api
 {
-    public class FreelancersController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class FreelancersController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
-        private readonly IFreelancerRepository _freelancerRepository;
+        private readonly IFreelancerRepository _repository;
 
-        public FreelancersController(IConfiguration configuration, IFreelancerRepository freelancerRepository)
+        public FreelancersController(IFreelancerRepository repository)
         {
-            _configuration = configuration;
-            _freelancerRepository = freelancerRepository;
+            _repository = repository;
         }
 
-        // GET: Freelancers
-        public async Task<IActionResult> Index()
+        [HttpGet("filter")]             //http://localhost:5095/api/freelancers/filter?isArchived={true/false}&searchPhrase={searchPhrase}
+        public async Task<IActionResult> GetFiltered([FromQuery] bool? isArchived = null, [FromQuery] string? searchPhrase = null)
         {
-            var freelancers = await _freelancerRepository.GetAllFreelancersAsync();
-            return View(freelancers);
+            if (!string.IsNullOrWhiteSpace(searchPhrase) && searchPhrase.Length < 2)
+                return BadRequest("Search phrase must be at least 2 characters long.");
+
+            return Ok(await _repository.GetFreelancersAsync(isArchived, searchPhrase));
         }
 
-        // GET: Freelancers/ShowSearchForm
-        public IActionResult ShowSearchForm() => View();
-
-        // POST: Freelancers/ShowSearchResultsUnarchived
-        public async Task<IActionResult> ShowSearchResultsUnarchived(string SearchPhrase)
+        [HttpGet("{id}")]               //http://localhost:5095/api/freelancers/{id}
+        public async Task<IActionResult> GetById(int id)
         {
-            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            var sql = "SELECT * FROM Freelancer WHERE (Username LIKE @SearchPhrase OR Email LIKE @SearchPhrase) AND IsArchived = 0";
-            var freelancers = await connection.QueryAsync<Freelancer>(sql, new { SearchPhrase = $"%{SearchPhrase}%" });
-            return View("Index", freelancers);
+            var freelancer = await _repository.GetByIdAsync(id);
+            return freelancer is null ? NotFound() : Ok(freelancer);
         }
 
-        // POST: Freelancers/ShowSearchResultsArchived
-        public async Task<IActionResult> ShowSearchResultsArchived(string SearchPhrase)
+        [HttpPost]                      //http://localhost:5095/api/freelancers
+        public async Task<IActionResult> Create([FromBody] Freelancer freelancer)
         {
-            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            var sql = "SELECT * FROM Freelancer WHERE (Username LIKE @SearchPhrase OR Email LIKE @SearchPhrase) AND IsArchived = 1";
-            var freelancers = await connection.QueryAsync<Freelancer>(sql, new { SearchPhrase = $"%{SearchPhrase}%" });
-            return View("Archive", freelancers);
+            var newId = await _repository.CreateAsync(freelancer);
+            return CreatedAtAction(nameof(GetById), new { id = newId }, freelancer);
         }
 
-        // GET: Freelancers/Details/5
-        public async Task<IActionResult> Details(int? id)
+        [HttpPut("{id}")]               //http://localhost:5095/api/freelancers/{id}
+        public async Task<IActionResult> Update(int id, [FromBody] Freelancer freelancer)
         {
-            if (id is null) return NotFound();
+            if (id != freelancer.Id)
+                return BadRequest("Freelancer ID mismatch.");
 
-            var freelancer = await _freelancerRepository.GetFreelancerDetailsAsync(id.Value);
-            return freelancer is null ? NotFound() : View(freelancer);
+            return await _repository.UpdateAsync(freelancer) ? NoContent() : NotFound();
         }
 
-        // GET: Freelancers/Create
-        public IActionResult Create() => View();
+        [HttpPatch("{id}/archive")]     //http://localhost:5095/api/freelancers/{id}/archive
+        public async Task<IActionResult> Archive(int id) =>
+            await _repository.ArchiveAsync(id) ? NoContent() : NotFound();
 
-        // Add these parameters to the Create action method signature
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Freelancer freelancer, string Skillsets, string Hobbies)
-        {
-            if (!ModelState.IsValid) return View(freelancer);
+        [HttpPatch("{id}/unarchive")]   //http://localhost:5095/api/freelancers/{id}/unarchive
+        public async Task<IActionResult> Unarchive(int id) =>
+            await _repository.UnarchiveAsync(id) ? NoContent() : NotFound();
 
-            await _freelancerRepository.CreateFreelancerAsync(freelancer, Skillsets, Hobbies);
+        [HttpDelete("{id}")]            //http://localhost:5095/api/freelancers/{id}
+        public async Task<IActionResult> Delete(int id) =>
+            await _repository.DeleteAsync(id) ? NoContent() : NotFound();
 
-            return RedirectToAction(nameof(Index));
-        }
+        //[HttpGet]                       //http://localhost:5095/api/freelancersapi
+        //public async Task<IActionResult> GetAll() =>
+        //    Ok(await _repository.GetAllAsync());
 
-        // GET: Freelancers/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id is null) return NotFound();
+        //[HttpGet("archived")]           //http://localhost:5095/api/freelancersapi/archived
+        //public async Task<IActionResult> GetArchived() =>
+        //    Ok(await _repository.GetArchivedAsync());
 
-            var freelancer = await _freelancerRepository.GetFreelancerDetailsAsync(id.Value);
-            return freelancer is null ? NotFound() : View(freelancer);
-        }
+        //[HttpGet("unarchived")]         //http://localhost:5095/api/freelancersapi/unarchived
+        //public async Task<IActionResult> GetUnarchived() =>
+        //    Ok(await _repository.GetUnarchivedAsync());
 
-        // POST: Freelancers/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Freelancer freelancer, string SkillsetsInput, string HobbiesInput)
-        {
-            if (id != freelancer.Id) return NotFound();
-            if (!ModelState.IsValid) return View(freelancer);
+        //[HttpGet("search")]             //http://localhost:5095/api/freelancersapi/search?searchPhrase={searchPhrase}
+        //public async Task<IActionResult> Search([FromQuery] string searchPhrase, [FromQuery] bool archived = false)
+        //{
+        //    if (string.IsNullOrWhiteSpace(searchPhrase))
+        //        return BadRequest("Search phrase cannot be empty.");
 
-            // Parse and assign back to the freelancer object
-            freelancer.Skillsets = SkillsetsInput?
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => new Skillset { FreelancerId = freelancer.Id, SkillName = s.Trim() })
-                .ToList() ?? new List<Skillset>();
-
-            freelancer.Hobbies = HobbiesInput?
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(h => new Hobby { FreelancerId = freelancer.Id, HobbyName = h.Trim() })
-                .ToList() ?? new List<Hobby>();
-
-            await _freelancerRepository.UpdateFreelancerAsync(freelancer);
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        // GET: Freelancers/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id is null) return NotFound();
-
-            var freelancer = await _freelancerRepository.GetFreelancerDetailsAsync(id.Value);
-            return freelancer is null ? NotFound() : View(freelancer);
-        }
-
-        // POST: Freelancers/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            await connection.ExecuteAsync("DELETE FROM Skillset WHERE FreelancerId = @Id", new { Id = id });
-            await connection.ExecuteAsync("DELETE FROM Hobby WHERE FreelancerId = @Id", new { Id = id });
-            await connection.ExecuteAsync("DELETE FROM Freelancer WHERE Id = @Id", new { Id = id });
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        private async Task<bool> FreelancerExists(int id)
-        {
-            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            var exists = await connection.ExecuteScalarAsync<int>(
-                "SELECT IIF(EXISTS(SELECT 1 FROM Freelancer WHERE Id = @Id), 1, 0)",
-                new { Id = id });
-            return exists == 1;
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Archive(int id)
-        {
-            await _freelancerRepository.ArchiveFreelancer(id);
-            return RedirectToAction("Index");
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Unarchive(int id)
-        {
-            await _freelancerRepository.UnarchiveFreelancer(id);
-            return RedirectToAction("Index");
-        }
-        public async Task<IActionResult> ViewArchive()
-        {
-            var archivedFreelancers = await _freelancerRepository.GetArchivedFreelancers();
-            return View("Archive", archivedFreelancers); 
-        }
+        //    return Ok(await _repository.SearchAsync(searchPhrase, archived));
+        //}
     }
 }

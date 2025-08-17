@@ -16,26 +16,26 @@ namespace TechAssessment.Data
         private SqlConnection GetConnection() =>
             new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
-        public async Task<IEnumerable<Freelancer>> GetAllAsync()
+        public async Task<IEnumerable<Freelancer>> GetFreelancersAsync(
+            bool? isArchived = null,
+            string? searchPhrase = null)
         {
             using var connection = GetConnection();
-            var freelancers = (await connection.QueryAsync<Freelancer>("SELECT * FROM Freelancer")).ToList();
-            await LoadRelatedData(connection, freelancers);
-            return freelancers;
-        }
 
-        public async Task<IEnumerable<Freelancer>> GetArchivedAsync()
-        {
-            using var connection = GetConnection();
-            var freelancers = (await connection.QueryAsync<Freelancer>("SELECT * FROM Freelancer WHERE IsArchived = 1")).ToList();
-            await LoadRelatedData(connection, freelancers);
-            return freelancers;
-        }
+            var sql = @"SELECT * FROM Freelancer f
+                       WHERE (@IsArchived IS NULL OR f.IsArchived = @IsArchived)
+                       AND (@SearchPhrase IS NULL OR @SearchPhrase = '' OR 
+                           (f.Username LIKE '%' + @SearchPhrase + '%' OR 
+                            f.Email LIKE '%' + @SearchPhrase + '%' OR 
+                            f.PhoneNum LIKE '%' + @SearchPhrase + '%'))";
 
-        public async Task<IEnumerable<Freelancer>> GetUnarchivedAsync()
-        {
-            using var connection = GetConnection();
-            var freelancers = (await connection.QueryAsync<Freelancer>("SELECT * FROM Freelancer WHERE IsArchived = 0")).ToList();
+            var parameters = new
+            {
+                IsArchived = isArchived.HasValue ? (isArchived.Value ? 1 : (int?)0) : null,
+                SearchPhrase = searchPhrase
+            };
+
+            var freelancers = (await connection.QueryAsync<Freelancer>(sql, parameters)).ToList();
             await LoadRelatedData(connection, freelancers);
             return freelancers;
         }
@@ -53,18 +53,6 @@ namespace TechAssessment.Data
                     "SELECT * FROM Hobby WHERE FreelancerId = @Id", new { Id = id })).ToList();
             }
             return freelancer;
-        }
-
-        public async Task<IEnumerable<Freelancer>> SearchAsync(string searchPhrase, bool archived = false)
-        {
-            using var connection = GetConnection();
-            var sql = @"SELECT * FROM Freelancer
-                        WHERE (Username LIKE @SearchPhrase OR Email LIKE @SearchPhrase OR PhoneNum LIKE @SearchPhrase)
-                        AND IsArchived = @Archived";
-            var freelancers = (await connection.QueryAsync<Freelancer>(
-                sql, new { SearchPhrase = $"%{searchPhrase}%", Archived = archived ? 1 : 0 })).ToList();
-            await LoadRelatedData(connection, freelancers);
-            return freelancers;
         }
 
         public async Task<int> CreateAsync(Freelancer freelancer)
@@ -172,5 +160,41 @@ namespace TechAssessment.Data
                 f.Hobbies = hobbies.Where(h => h.FreelancerId == f.Id).ToList();
             }
         }
+
+        //public async Task<IEnumerable<Freelancer>> GetAllAsync()
+        //{
+        //    using var connection = GetConnection();
+        //    var freelancers = (await connection.QueryAsync<Freelancer>("SELECT * FROM Freelancer")).ToList();
+        //    await LoadRelatedData(connection, freelancers);
+        //    return freelancers;
+        //}
+
+        //public async Task<IEnumerable<Freelancer>> GetArchivedAsync()
+        //{
+        //    using var connection = GetConnection();
+        //    var freelancers = (await connection.QueryAsync<Freelancer>("SELECT * FROM Freelancer WHERE IsArchived = 1")).ToList();
+        //    await LoadRelatedData(connection, freelancers);
+        //    return freelancers;
+        //}
+
+        //public async Task<IEnumerable<Freelancer>> GetUnarchivedAsync()
+        //{
+        //    using var connection = GetConnection();
+        //    var freelancers = (await connection.QueryAsync<Freelancer>("SELECT * FROM Freelancer WHERE IsArchived = 0")).ToList();
+        //    await LoadRelatedData(connection, freelancers);
+        //    return freelancers;
+        //}
+
+        //public async Task<IEnumerable<Freelancer>> SearchAsync(string searchPhrase, bool archived = false)
+        //{
+        //    using var connection = GetConnection();
+        //    var sql = @"SELECT * FROM Freelancer
+        //                WHERE (Username LIKE @SearchPhrase OR Email LIKE @SearchPhrase OR PhoneNum LIKE @SearchPhrase)
+        //                AND IsArchived = @Archived";
+        //    var freelancers = (await connection.QueryAsync<Freelancer>(
+        //        sql, new { SearchPhrase = $"%{searchPhrase}%", Archived = archived ? 1 : 0 })).ToList();
+        //    await LoadRelatedData(connection, freelancers);
+        //    return freelancers;
+        //}
     }
 }
