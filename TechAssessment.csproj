@@ -8,10 +8,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Areas\**" />
     <Compile Remove="Views\**" />
+    <Content Remove="Areas\**" />
     <Content Remove="Views\**" />
+    <EmbeddedResource Remove="Areas\**" />
     <EmbeddedResource Remove="Views\**" />
+    <None Remove="Areas\**" />
     <None Remove="Views\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Controllers\HomeController.cs" />
+    <Compile Remove="Data\ApplicationDbContext.cs" />
+    <Compile Remove="Models\ErrorViewModel.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,10 +35,6 @@
     <PackageReference Include="MSTest.TestFramework" Version="3.6.4" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
 	<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Views\Freelancers\" />
   </ItemGroup>
 
 </Project>

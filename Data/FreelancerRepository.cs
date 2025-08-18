@@ -17,9 +17,15 @@ namespace TechAssessment.Data
             new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
         public async Task<IEnumerable<Freelancer>> GetFreelancersAsync(
+            int currentPageNumber = 1, int pageSize = 10,
             bool? isArchived = null,
             string? searchPhrase = null)
         {
+            int maxPageSize = 50;
+            pageSize = pageSize < maxPageSize ? pageSize : maxPageSize;
+
+            int skip = (currentPageNumber - 1) * pageSize;
+            int take = pageSize;
             using var connection = GetConnection();
 
             var sql = @"SELECT * FROM Freelancer f
@@ -27,12 +33,16 @@ namespace TechAssessment.Data
                        AND (@SearchPhrase IS NULL OR @SearchPhrase = '' OR 
                            (f.Username LIKE '%' + @SearchPhrase + '%' OR 
                             f.Email LIKE '%' + @SearchPhrase + '%' OR 
-                            f.PhoneNum LIKE '%' + @SearchPhrase + '%'))";
+                            f.PhoneNum LIKE '%' + @SearchPhrase + '%'))
+                        ORDER BY f.Id
+                        OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY";
 
             var parameters = new
             {
                 IsArchived = isArchived.HasValue ? (isArchived.Value ? 1 : (int?)0) : null,
-                SearchPhrase = searchPhrase
+                SearchPhrase = searchPhrase,
+                Skip = skip,
+                Take = take
             };
 
             var freelancers = (await connection.QueryAsync<Freelancer>(sql, parameters)).ToList();

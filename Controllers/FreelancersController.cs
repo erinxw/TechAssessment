@@ -16,12 +16,12 @@ namespace TechAssessment.Controllers.Api
         }
 
         [HttpGet("filter")]             //http://localhost:5095/api/freelancers/filter?isArchived={true/false}&searchPhrase={searchPhrase}
-        public async Task<IActionResult> GetFiltered([FromQuery] bool? isArchived = null, [FromQuery] string? searchPhrase = null)
+        public async Task<IActionResult> GetFiltered(int currentPageNumber = 1, int pageSize = 10, [FromQuery] bool? isArchived = null, [FromQuery] string? searchPhrase = null)
         {
             if (!string.IsNullOrWhiteSpace(searchPhrase) && searchPhrase.Length < 2)
-                return BadRequest("Search phrase must be at least 2 characters long.");
+                return BadRequest("Search phrase must be at least 2 characters long.");     //400
 
-            return Ok(await _repository.GetFreelancersAsync(isArchived, searchPhrase));
+            return Ok(await _repository.GetFreelancersAsync(currentPageNumber, pageSize, isArchived, searchPhrase));
         }
 
         [HttpGet("{id}")]               //http://localhost:5095/api/freelancers/{id}
@@ -44,7 +44,7 @@ namespace TechAssessment.Controllers.Api
             if (id != freelancer.Id)
                 return BadRequest("Freelancer ID mismatch.");
 
-            return await _repository.UpdateAsync(freelancer) ? NoContent() : NotFound();
+            return await _repository.UpdateAsync(freelancer) ? NoContent() : NotFound();        // 201
         }
 
         [HttpPatch("{id}/archive")]     //http://localhost:5095/api/freelancers/{id}/archive

@@ -4,7 +4,7 @@ namespace TechAssessment.Data
 {
     public interface IFreelancerRepository
     {
-        Task<IEnumerable<Freelancer>> GetFreelancersAsync(bool? isArchived = null, string? searchPhrase = null);
+        Task<IEnumerable<Freelancer>> GetFreelancersAsync(int currentPageNumber = 1, int pageSize = 10, bool? isArchived = null, string? searchPhrase = null);
 
         Task<Freelancer?> GetByIdAsync(int id);
         Task<int> CreateAsync(Freelancer freelancer);
