@@ -1,9 +1,19 @@
 using TechAssessment.Data;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Tell Kestrel to listen on these URLs explicitly
 builder.WebHost.UseUrls("http://localhost:5095", "https://localhost:7202");
+
+//CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -29,10 +39,11 @@ else
 
 // Serve static files (wwwroot)
 app.UseStaticFiles();
-
 app.UseRouting();
-app.UseAuthorization();
 
+app.UseCors("AllowReactApp");
+
+app.UseAuthorization();
 app.MapRazorPages();
 app.MapControllers();
 

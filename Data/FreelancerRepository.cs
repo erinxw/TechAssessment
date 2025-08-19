@@ -32,8 +32,7 @@ namespace TechAssessment.Data
                        WHERE (@IsArchived IS NULL OR f.IsArchived = @IsArchived)
                        AND (@SearchPhrase IS NULL OR @SearchPhrase = '' OR 
                            (f.Username LIKE '%' + @SearchPhrase + '%' OR 
-                            f.Email LIKE '%' + @SearchPhrase + '%' OR 
-                            f.PhoneNum LIKE '%' + @SearchPhrase + '%'))
+                            f.Email LIKE '%' + @SearchPhrase + '%'))
                         ORDER BY f.Id
                         OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY";
 
