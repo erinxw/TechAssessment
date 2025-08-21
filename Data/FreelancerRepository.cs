@@ -16,10 +16,10 @@ namespace TechAssessment.Data
         private SqlConnection GetConnection() =>
             new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
-        public async Task<IEnumerable<Freelancer>> GetFreelancersAsync(
-            int currentPageNumber = 1, int pageSize = 10,
-            bool? isArchived = null,
-            string? searchPhrase = null)
+        public async Task<PaginationResponse<List<Freelancer>>> GetFreelancersAsync(
+    int currentPageNumber = 1, int pageSize = 10,
+    bool? isArchived = null,
+    string? searchPhrase = null)
         {
             int maxPageSize = 50;
             pageSize = pageSize < maxPageSize ? pageSize : maxPageSize;
@@ -28,13 +28,21 @@ namespace TechAssessment.Data
             int take = pageSize;
             using var connection = GetConnection();
 
-            var sql = @"SELECT * FROM Freelancer f
-                       WHERE (@IsArchived IS NULL OR f.IsArchived = @IsArchived)
-                       AND (@SearchPhrase IS NULL OR @SearchPhrase = '' OR 
-                           (f.Username LIKE '%' + @SearchPhrase + '%' OR 
-                            f.Email LIKE '%' + @SearchPhrase + '%'))
-                        ORDER BY f.Id
-                        OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY";
+            var sql = @"
+                SELECT f.*
+                FROM Freelancer f
+                WHERE (@IsArchived IS NULL OR f.IsArchived = @IsArchived)
+                AND (@SearchPhrase IS NULL OR @SearchPhrase = '' OR 
+                    (f.Username LIKE '%' + @SearchPhrase + '%' OR 
+                     f.Email LIKE '%' + @SearchPhrase + '%'))
+                ORDER BY f.Id
+                OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY;
+
+                SELECT COUNT(*) FROM Freelancer
+                WHERE (@IsArchived IS NULL OR IsArchived = @IsArchived)
+                AND (@SearchPhrase IS NULL OR @SearchPhrase = '' OR 
+                    (Username LIKE '%' + @SearchPhrase + '%' OR 
+                     Email LIKE '%' + @SearchPhrase + '%'))";
 
             var parameters = new
             {
@@ -44,9 +52,20 @@ namespace TechAssessment.Data
                 Take = take
             };
 
-            var freelancers = (await connection.QueryAsync<Freelancer>(sql, parameters)).ToList();
+            using var multi = await connection.QueryMultipleAsync(sql, parameters);
+            var freelancers = (await multi.ReadAsync<Freelancer>()).ToList();
+            var totalCount = await multi.ReadSingleAsync<int>();
+
             await LoadRelatedData(connection, freelancers);
-            return freelancers;
+
+            var paginationResponse = new PaginationResponse<List<Freelancer>>(
+                totalCount,
+                freelancers,
+                currentPageNumber,
+                pageSize
+            );
+
+            return paginationResponse;
         }
 
         public async Task<Freelancer?> GetByIdAsync(int id)

@@ -17,11 +17,11 @@
             CurrentPageNumber = currentPageNumber;
             PageSize = pageSize;
 
-            TotalPages = (int)Math.Ceiling((double)TotalPages / (double)pageSize);
+            TotalPages = (int)Math.Ceiling((double)TotalCount / (double)pageSize);
 
             // For UI
-            //HasPreviousPage = CurrentPageNumber > 1;
-            //HasNextPage = CurrentPageNumber < TotalPages;
+            HasPreviousPage = CurrentPageNumber > 1;
+            HasNextPage = CurrentPageNumber < TotalPages;
         }
     }
 }
