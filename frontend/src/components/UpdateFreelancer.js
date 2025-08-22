@@ -30,7 +30,7 @@ function UpdateFreelancer({ freelancer, onUpdate }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`https://localhost:7202/api/freelancers/${freelancer.id}`, {
+      const response = await fetch(`http://localhost:5095/api/freelancers/${freelancer.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

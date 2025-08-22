@@ -46,7 +46,7 @@ function CreateFreelancer() {
     };
     console.log('Payload sent to backend:', JSON.stringify(data, null, 2));
     try {
-  const response = await fetch('https://localhost:7202/api/Freelancers', {
+  const response = await fetch('http://localhost:5095/api/Freelancers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

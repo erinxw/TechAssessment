@@ -16,7 +16,7 @@ function HomePage() {
 
   async function fetchFreelancers(page = 1) {
     try {
-      const response = await fetch(`https://localhost:7202/api/Freelancers/filter?currentPageNumber=${page}&pageSize=${pagination.pageSize}`);
+      const response = await fetch(`http://localhost:5095/api/Freelancers/filter?currentPageNumber=${page}&pageSize=${pagination.pageSize}`);
       if (response.ok) {
         const data = await response.json();
         setFreelancers(data.data || []); // Use the 'data' property from paginated response
