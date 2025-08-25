@@ -19,7 +19,11 @@ function ArchiveToggle({ freelancerId, isArchived, onToggle }) {
     };
 
     return (
-        <button className={`btn btn-sm ms-1 ${isArchived ? 'btn-success' : 'btn-warning'}`} onClick={handleToggle}>
+        <button
+            className={`btn btn-sm ms-1 ${isArchived ? 'btn-success' : 'btn-warning'}`}
+            style={{ width: '80px' }}
+            onClick={handleToggle}
+        >
             {isArchived ? 'Unarchive' : 'Archive'}
         </button>
     );
