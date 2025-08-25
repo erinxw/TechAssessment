@@ -20,7 +20,7 @@ function DeleteFreelancer({ freelancerId, onDelete }) {
   };
 
   return (
-    <button onClick={handleDelete} className="btn btn-danger btn-sm">Delete</button>
+    <button onClick={handleDelete} className="btn btn-danger btn-sm ms-1">Delete</button>
   );
 }
 

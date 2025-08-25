@@ -88,7 +88,7 @@ function HomePage() {
                 <td>{Array.isArray(f.hobbies) && f.hobbies.length > 0 ? f.hobbies.map(h => h.hobbyName).join(', ') : '—'}</td>
                 <td>
                   {/* Actions: View/Archive/Unarchive/Delete */}
-                  <button className="btn btn-info btn-sm" onClick={() => navigate(`/Freelancers/${f.id || idx}`)}>View</button> |&nbsp;
+                  <button className="btn btn-info btn-sm" onClick={() => navigate(`/Freelancers/${f.id || idx}`)}>View</button>
                   <ArchiveToggle
                     freelancerId={f.id || idx}
                     isArchived={f.isArchived}
@@ -97,7 +97,7 @@ function HomePage() {
                       updatedFreelancers[idx].isArchived = updatedStatus;
                       return updatedFreelancers;
                     })}
-                  /> |&nbsp;
+                  />
                     <DeleteFreelancer freelancerId={f.id || idx} onDelete={() => deleteFreelancer(idx)} />
                 </td>
               </tr>
