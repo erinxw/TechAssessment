@@ -1,59 +1,54 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 
-function UpdateFreelancer({ freelancer, onUpdate }) {
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    phonenum: '',
-    skills: [''],
-    hobbies: ['']
-  });
+function UpdateFreelancer() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNum, setPhoneNum] = useState('');
+  const [skillsets, setSkillsets] = useState([{ SkillName: '' }]);
+  const [hobbies, setHobbies] = useState([{ HobbyName: '' }]);
 
   useEffect(() => {
-    if (freelancer) {
-      setFormData({
-        username: freelancer.username || '',
-        email: freelancer.email || '',
-        phonenum: freelancer.phonenum || '',
-        skills: freelancer.skills || [''],
-        hobbies: freelancer.hobbies || ['']
+    fetch(`http://localhost:5095/api/Freelancers/${id}`)
+      .then(response => response.json())
+      .then(data => {
+        setUsername(data.username);
+        setEmail(data.email);
+        setPhoneNum(data.phoneNum);
+        setSkillsets(data.skillsets);
+        setHobbies(data.hobbies);
       });
-    }
-  }, [freelancer]);
-
-  function handleChange(e) {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  }
-
-  // Add similar handlers for skills and hobbies arrays as in CreateFreelancer
+  }, [id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await fetch(`http://localhost:5095/api/freelancers/${freelancer.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-      if(response.ok) {
-        const result = await response.json();
-        alert('Freelancer updated successfully');
-        if (onUpdate) onUpdate(result);
-      } else {
-        alert('Error updating freelancer');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Network error');
+    const payload = {
+      Id: Number(id),
+      Username: username,
+      Email: email,
+      PhoneNum: phoneNum,
+      Skillsets: skillsets,
+      Hobbies: hobbies
+    };
+    const response = await fetch(`http://localhost:5095/api/Freelancers/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (response.ok) {
+      alert('Freelancer updated!');
+      navigate(`/freelancers/${id}`);
+    } else {
+      alert('Error updating freelancer');
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      {/* ...similar form fields as CreateFreelancer... */}
-      <button type="submit">Update</button>
+      {/* ...fields for username, email, phoneNum, skillsets, hobbies... */}
+      <button className="btn btn-primary btn-sm" type="submit">Update</button>
     </form>
   );
 }

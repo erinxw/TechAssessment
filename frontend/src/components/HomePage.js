@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-
+import DeleteFreelancer from './DeleteFreelancer';
+import ArchiveToggle from './ArchiveToggle';
 import React, { useState, useEffect } from 'react';
 
 function HomePage() {
@@ -87,12 +88,17 @@ function HomePage() {
                 <td>{Array.isArray(f.hobbies) && f.hobbies.length > 0 ? f.hobbies.map(h => h.hobbyName).join(', ') : '—'}</td>
                 <td>
                   {/* Actions: View/Archive/Unarchive/Delete */}
-                  <button className="btn btn-info btn-sm" onClick={() => navigate(`/freelancers/${f.id || idx}`)}>View</button>
-                  {f.isArchived ? (
-                    <button className="btn btn-success btn-sm" onClick={() => unarchiveFreelancer(idx)}>Unarchive</button>
-                  ) : (
-                    <button className="btn btn-warning btn-sm" onClick={() => archiveFreelancer(idx)}>Archive</button>
-                  )}
+                  <button className="btn btn-info btn-sm" onClick={() => navigate(`/Freelancers/${f.id || idx}`)}>View</button> |&nbsp;
+                  <ArchiveToggle
+                    freelancerId={f.id || idx}
+                    isArchived={f.isArchived}
+                    onToggle={(updatedStatus) => setFreelancers(prev => {
+                      const updatedFreelancers = [...prev];
+                      updatedFreelancers[idx].isArchived = updatedStatus;
+                      return updatedFreelancers;
+                    })}
+                  /> |&nbsp;
+                    <DeleteFreelancer freelancerId={f.id || idx} onDelete={() => deleteFreelancer(idx)} />
                 </td>
               </tr>
             ))}
