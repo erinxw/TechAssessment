@@ -6,7 +6,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import HomePage from './components/HomePage';
 import CreateFreelancer from './components/CreateFreelancer';
 import FreelancerDetails from './components/FreelancerDetails';
-import UpdateFreelancer from './components/UpdateFreelancer';
 
 function App() {
   return (
@@ -28,7 +27,6 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/create" element={<CreateFreelancer />} />
           <Route path="/Freelancers/:id" element={<FreelancerDetails />} />
-          <Route path="/update/:id" element={<UpdateFreelancer />} />
         </Routes>
       </div>
     </BrowserRouter>
