@@ -93,7 +93,7 @@ function FreelancerDetails() {
                         <p><strong>Phone Number:</strong> {freelancer.phoneNum}</p>
                         <p><strong>Skillsets:</strong> {freelancer.skillsets?.map(s => s.skillName).join(', ') || 'No skillsets'}</p>
                         <p><strong>Hobbies:</strong> {freelancer.hobbies?.map(h => h.hobbyName).join(', ') || 'No hobbies'}</p>
-                        <div className="mx-auto mb-4">
+                        <div className="mx-auto d-flex justify-content-center">
                             <button className="btn btn-primary btn-sm" onClick={() => setIsEditing(true)}>Edit</button>
                             <ArchiveToggle
                                 freelancerId={freelancer.id}

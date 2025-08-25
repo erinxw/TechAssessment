@@ -113,14 +113,14 @@ function HomePage() {
               <button className={`btn btn-outline-warning btn-sm${filter === 'archived' ? ' active' : ''}`} onClick={() => setFilter('archived')}>Archived</button>
             </div>
             {/* Sort Button */}
-            <button className="btn btn-light me-2" onClick={toggleSortOrder}>
+            <button className="btn btn-light btn-sm me-2" onClick={toggleSortOrder}>
               <span className="me-1">Sort</span>
               {sortOrder === 'asc' ? '↑ A-Z' : '↓ Z-A'}
             </button>
             </div>
           
             {/* Create Button */}
-            <button onClick={() => navigate('/create')} className="btn btn-dark">New</button>
+            <button onClick={() => navigate('/create')} className="btn btn-dark btn-sm">New</button>
           </div>
           <table className="table table-striped table-bordered w-auto">
             <thead>
@@ -161,7 +161,7 @@ function HomePage() {
       <div className="d-flex justify-content-center my-3">
         <div className="pagination-buttons">
           <button
-            className="btn btn-secondary"
+            className="btn btn-secondary btn-sm"
             disabled={!pagination.hasPreviousPage}
             onClick={() => fetchFreelancers(pagination.currentPageNumber - 1)}
           >
@@ -169,7 +169,7 @@ function HomePage() {
           </button>
           <span> Page {pagination.currentPageNumber} of {pagination.totalPages} </span>
           <button
-            className="btn btn-secondary"
+            className="btn btn-secondary btn-sm"
             disabled={!pagination.hasNextPage}
             onClick={() => fetchFreelancers(pagination.currentPageNumber + 1)}
           >

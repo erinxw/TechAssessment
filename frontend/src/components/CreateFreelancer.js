@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function CreateFreelancer() {
   const initialFreelancerState = {
@@ -46,7 +47,7 @@ function CreateFreelancer() {
     };
     console.log('Payload sent to backend:', JSON.stringify(data, null, 2));
     try {
-  const response = await fetch('http://localhost:5095/api/Freelancers', {
+      const response = await fetch('http://localhost:5095/api/Freelancers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -67,93 +68,100 @@ function CreateFreelancer() {
     }
   };
 
+  const navigate = useNavigate();
   const newFreelancer = () => {
-    setFreelancer(initialFreelancerState);
-    setSubmitted(false);
+    navigate('/');
   };
 
   return (
     <div className="submit-form">
       {submitted ? (
-        <div>
-          <h4>You submitted successfully!</h4>
-          <button className="btn btn-success" onClick={newFreelancer}>
-            Add
-          </button>
+        <div className='container mt-4'>
+          <div className="card mx-auto" style={{ maxWidth: "400px" }}>
+            <div className="card-body d-flex flex-column align-items-center">
+              <h5>You submitted successfully!</h5>
+              <button className="btn btn-primary" onClick={newFreelancer}>
+                Back
+              </button>
+            </div>
+          </div>
         </div>
       ) : (
-        <div>
-          <div className="form-group">
-            <label htmlFor="Username">Username</label>
-            <input
-              type="text"
-              className="form-control"
-              id="Username"
-              required
-              value={freelancer.Username}
-              onChange={handleInputChange}
-              name="Username"
-            />
+        <div className='container mt-4'>
+          <h2 className="text-center">Create A New Freelancer</h2>
+          <div className="card mx-auto py-3" style={{ maxWidth: "400px" }}>
+            <div className="form-group px-4 py-1">
+              <label htmlFor="Username">Username</label>
+              <input
+                type="text"
+                className="form-control"
+                id="Username"
+                required
+                value={freelancer.Username}
+                onChange={handleInputChange}
+                name="Username"
+              />
+            </div>
+            <div className="form-group px-4 py-1">
+              <label htmlFor="Email">Email</label>
+              <input
+                type="email"
+                className="form-control"
+                id="Email"
+                required
+                value={freelancer.Email}
+                onChange={handleInputChange}
+                name="Email"
+              />
+            </div>
+            <div className="form-group px-4 py-1">
+              <label htmlFor="PhoneNum">Phone Number</label>
+              <input
+                type="tel"
+                className="form-control"
+                id="PhoneNum"
+                required
+                value={freelancer.PhoneNum}
+                onChange={handleInputChange}
+                name="PhoneNum"
+              />
+            </div>
+            <div className="form-group px-4 py-1">
+              <label>Skillsets</label>
+              {freelancer.Skillsets.map((skill, idx) => (
+                <div key={idx} className="input-group mb-2">
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={skill.SkillName}
+                    onChange={e => handleSkillsetChange(idx, e.target.value)}
+                    placeholder={`Skillset #${idx + 1}`}
+                  />
+                  <button type="button" className="btn btn-danger" onClick={() => removeSkillset(idx)} disabled={freelancer.Skillsets.length === 1}>Remove</button>
+                </div>
+              ))}
+              <button type="button" className="btn btn-primary" onClick={addSkillset}>Add</button>
+            </div>
+            <div className="form-group px-4 py-1">
+              <label>Hobbies</label>
+              {freelancer.Hobbies.map((hobby, idx) => (
+                <div key={idx} className="input-group mb-2">
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={hobby.HobbyName}
+                    onChange={e => handleHobbyChange(idx, e.target.value)}
+                    placeholder={`Hobby #${idx + 1}`}
+                  />
+                  <button type="button" className="btn btn-danger" onClick={() => removeHobby(idx)} disabled={freelancer.Hobbies.length === 1}>Remove</button>
+                </div>
+              ))}
+              <button type="button" className="btn btn-primary" onClick={addHobby}>Add</button>
+            </div>
+            <button onClick={saveFreelancer} className="mx-auto btn btn-success">
+              Submit
+            </button>
           </div>
-          <div className="form-group">
-            <label htmlFor="Email">Email</label>
-            <input
-              type="email"
-              className="form-control"
-              id="Email"
-              required
-              value={freelancer.Email}
-              onChange={handleInputChange}
-              name="Email"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="PhoneNum">Phone Number</label>
-            <input
-              type="tel"
-              className="form-control"
-              id="PhoneNum"
-              required
-              value={freelancer.PhoneNum}
-              onChange={handleInputChange}
-              name="PhoneNum"
-            />
-          </div>
-          <div className="form-group">
-            <label>Skillsets</label>
-            {freelancer.Skillsets.map((skill, idx) => (
-              <div key={idx} className="input-group mb-2">
-                <input
-                  type="text"
-                  className="form-control"
-                  value={skill.SkillName}
-                  onChange={e => handleSkillsetChange(idx, e.target.value)}
-                  placeholder={`Skillset #${idx + 1}`}
-                />
-                <button type="button" className="btn btn-danger" onClick={() => removeSkillset(idx)} disabled={freelancer.Skillsets.length === 1}>Remove</button>
-              </div>
-            ))}
-            <button type="button" className="btn btn-primary" onClick={addSkillset}>Add Skillset</button>
-          </div>
-          <div className="form-group">
-            <label>Hobbies</label>
-            {freelancer.Hobbies.map((hobby, idx) => (
-              <div key={idx} className="input-group mb-2">
-                <input
-                  type="text"
-                  className="form-control"
-                  value={hobby.HobbyName}
-                  onChange={e => handleHobbyChange(idx, e.target.value)}
-                  placeholder={`Hobby #${idx + 1}`}
-                />
-                <button type="button" className="btn btn-danger" onClick={() => removeHobby(idx)} disabled={freelancer.Hobbies.length === 1}>Remove</button>
-              </div>
-            ))}
-            <button type="button" className="btn btn-primary" onClick={addHobby}>Add Hobby</button>
-          </div>
-          <button onClick={saveFreelancer} className="btn btn-success">
-            Submit
-          </button>
         </div>
       )}
     </div>
