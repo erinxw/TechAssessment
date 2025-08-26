@@ -7,6 +7,7 @@ namespace TechAssessment.Data
         Task<PaginationResponse<List<Freelancer>>> GetFreelancersAsync(int currentPageNumber = 1, int pageSize = 10, bool? isArchived = null, string? searchPhrase = null);
 
         Task<Freelancer?> GetByIdAsync(int id);
+        Task<Freelancer?> GetByUsernameAsync(string username);
         Task<int> CreateAsync(Freelancer freelancer);
         Task<bool> UpdateAsync(Freelancer freelancer);
         Task<bool> ArchiveAsync(int id);

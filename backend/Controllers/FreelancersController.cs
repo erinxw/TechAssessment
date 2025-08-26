@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TechAssessment.Data;
 using TechAssessment.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TechAssessment.Controllers.Api
 {
     [Route("api/[controller]")]
     [ApiController]
+    // [Authorize]
     public class FreelancersController : ControllerBase
     {
         private readonly IFreelancerRepository _repository;

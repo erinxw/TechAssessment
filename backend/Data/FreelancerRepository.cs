@@ -83,11 +83,33 @@ namespace TechAssessment.Data
             return freelancer;
         }
 
+        public async Task<Freelancer?> GetByUsernameAsync(string username)
+        {
+            using var connection = GetConnection();
+            var freelancer = await connection.QuerySingleOrDefaultAsync<Freelancer>(
+                "SELECT * FROM Freelancer WHERE Username = @Username", new { Username = username });
+
+            if (freelancer != null)
+            {
+                freelancer.Skillsets = (await connection.QueryAsync<Skillset>(
+                    "SELECT * FROM Skillset WHERE FreelancerId = @Id", new { Id = freelancer.Id })).ToList();
+                freelancer.Hobbies = (await connection.QueryAsync<Hobby>(
+                    "SELECT * FROM Hobby WHERE FreelancerId = @Id", new { Id = freelancer.Id })).ToList();
+            }
+
+            return freelancer;
+        }
+
         public async Task<int> CreateAsync(Freelancer freelancer)
         {
             using var connection = GetConnection();
-            var sql = @"INSERT INTO Freelancer (Username, Email, PhoneNum, IsArchived)
-                        VALUES (@Username, @Email, @PhoneNum, 0);
+            // Hash the password before saving
+            if (!string.IsNullOrWhiteSpace(freelancer.Password))
+            {
+                freelancer.Password = PasswordHashHandler.HashPassword(freelancer.Password);
+            }
+            var sql = @"INSERT INTO Freelancer (Username, Email, PhoneNum, Password, IsArchived)
+                        VALUES (@Username, @Email, @PhoneNum, @Password, 0);
                         SELECT CAST(SCOPE_IDENTITY() as int)";
             var newId = await connection.ExecuteScalarAsync<int>(sql, freelancer);
 
@@ -119,8 +141,13 @@ namespace TechAssessment.Data
         public async Task<bool> UpdateAsync(Freelancer freelancer)
         {
             using var connection = GetConnection();
+            // Hash the password before updating if it's not empty
+            if (!string.IsNullOrWhiteSpace(freelancer.Password))
+            {
+                freelancer.Password = PasswordHashHandler.HashPassword(freelancer.Password);
+            }
             var sql = @"UPDATE Freelancer
-                        SET Username = @Username, Email = @Email, PhoneNum = @PhoneNum, IsArchived = @IsArchived
+                        SET Username = @Username, Email = @Email, PhoneNum = @PhoneNum, Password = @Password, IsArchived = @IsArchived
                         WHERE Id = @Id";
             var affected = await connection.ExecuteAsync(sql, freelancer);
             if (affected == 0) return false;

@@ -17,6 +17,10 @@ namespace TechAssessment.Models;
         [RegularExpression(@"^\+?[0-9\s\-]{7,20}$", ErrorMessage = "Invalid phone number format.")]
         public required string PhoneNum { get; set; }
 
+        [Required]
+        [MinLength(8, ErrorMessage = "Password must be at least 8 characters long.")]
+        public string Password { get; set; }  // Hashed password
+
         public bool IsArchived { get; set; }
 
         public List<Skillset> Skillsets { get; set; } = new List<Skillset>();
