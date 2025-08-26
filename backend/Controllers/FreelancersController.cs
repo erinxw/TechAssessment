@@ -18,12 +18,12 @@ namespace TechAssessment.Controllers.Api
         }
 
         [HttpGet("filter")]             //http://localhost:5095/api/freelancers/filter?isArchived={true/false}&searchPhrase={searchPhrase}
-        public async Task<IActionResult> GetFiltered(int currentPageNumber = 1, int pageSize = 10, [FromQuery] bool? isArchived = null, [FromQuery] string? searchPhrase = null)
+        public async Task<IActionResult> GetFiltered(int currentPageNumber = 1, int pageSize = 10, [FromQuery] bool? isArchived = null, [FromQuery] string? searchPhrase = null, [FromQuery] string sortOrder = "asc")
         {
             if (!string.IsNullOrWhiteSpace(searchPhrase) && searchPhrase.Length < 2)
                 return BadRequest("Search phrase must be at least 2 characters long.");     //400
 
-            return Ok(await _repository.GetFreelancersAsync(currentPageNumber, pageSize, isArchived, searchPhrase));
+            return Ok(await _repository.GetFreelancersAsync(currentPageNumber, pageSize, isArchived, searchPhrase, sortOrder));
         }
 
         [HttpGet("{id}")]               //http://localhost:5095/api/freelancers/{id}

@@ -19,7 +19,8 @@ namespace TechAssessment.Data
         public async Task<PaginationResponse<List<Freelancer>>> GetFreelancersAsync(
     int currentPageNumber = 1, int pageSize = 10,
     bool? isArchived = null,
-    string? searchPhrase = null)
+    string? searchPhrase = null,
+    string sortOrder = "asc")
         {
             int maxPageSize = 50;
             pageSize = pageSize < maxPageSize ? pageSize : maxPageSize;
@@ -28,14 +29,15 @@ namespace TechAssessment.Data
             int take = pageSize;
             using var connection = GetConnection();
 
-            var sql = @"
+            var order = sortOrder.ToLower() == "desc" ? "DESC" : "ASC";
+            var sql = $@"
                 SELECT f.*
                 FROM Freelancer f
                 WHERE (@IsArchived IS NULL OR f.IsArchived = @IsArchived)
                 AND (@SearchPhrase IS NULL OR @SearchPhrase = '' OR 
                     (f.Username LIKE '%' + @SearchPhrase + '%' OR 
                      f.Email LIKE '%' + @SearchPhrase + '%'))
-                ORDER BY f.Id
+                ORDER BY f.Username {order}
                 OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY;
 
                 SELECT COUNT(*) FROM Freelancer

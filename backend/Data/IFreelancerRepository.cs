@@ -4,7 +4,7 @@ namespace TechAssessment.Data
 {
     public interface IFreelancerRepository
     {
-        Task<PaginationResponse<List<Freelancer>>> GetFreelancersAsync(int currentPageNumber = 1, int pageSize = 10, bool? isArchived = null, string? searchPhrase = null);
+        Task<PaginationResponse<List<Freelancer>>> GetFreelancersAsync(int currentPageNumber = 1, int pageSize = 10, bool? isArchived = null, string? searchPhrase = null, string? sortOrder = null);
 
         Task<Freelancer?> GetByIdAsync(int id);
         Task<Freelancer?> GetByUsernameAsync(string username);

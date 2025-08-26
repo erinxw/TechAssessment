@@ -18,13 +18,15 @@ function HomePage() {
     hasNextPage: false
   });
 
-  async function fetchFreelancers(page = 1, searchPhraseParam) {
+  async function fetchFreelancers(page = 1, searchPhraseParam, sortOrderParam) {
     try {
       let url = `http://localhost:5095/api/Freelancers/filter?currentPageNumber=${page}&pageSize=${pagination.pageSize}`;
       if (filter === 'archived') url += '&isArchived=true';
       else if (filter === 'unarchived') url += '&isArchived=false';
       const phraseToUse = typeof searchPhraseParam === 'string' ? searchPhraseParam : searchPhrase;
       if (phraseToUse && phraseToUse.length >= 2) url += `&searchPhrase=${encodeURIComponent(phraseToUse)}`;
+      const orderToUse = typeof sortOrderParam === 'string' ? sortOrderParam : sortOrder;
+      url += `&sortOrder=${orderToUse}`;
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
@@ -44,8 +46,8 @@ function HomePage() {
   }
 
   useEffect(() => {
-    fetchFreelancers();
-  }, [filter, searchPhrase]);
+    fetchFreelancers(pagination.currentPageNumber, searchPhrase, sortOrder);
+  }, [filter, searchPhrase, sortOrder]);
   // ...existing code...
 
   const unarchiveFreelancer = (idx) => {
@@ -68,22 +70,14 @@ function HomePage() {
     setFreelancers(prev => prev.filter((_, i) => i !== idx));
   };
 
-  const sortFreelancers = (freelancersArray) => {
-    return [...freelancersArray].sort((a, b) => {
-      const aValue = (a.username || '').toLowerCase();
-      const bValue = (b.username || '').toLowerCase();
-
-      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
-      return 0;
-    });
-  }
-
-  const sortedAndFilteredFreelancers = sortFreelancers(freelancers);
+  // Remove frontend sorting, use backend sorted freelancers
+  const sortedAndFilteredFreelancers = freelancers;
 
   const toggleSortOrder = () => {
-    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-  };
+    const newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+    setSortOrder(newOrder);
+    fetchFreelancers(pagination.currentPageNumber, searchPhrase, newOrder);
+  }
 
   console.log('Pagination:', pagination); // Debug pagination state
   return (
