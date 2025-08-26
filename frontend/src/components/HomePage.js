@@ -88,7 +88,7 @@ function HomePage() {
   console.log('Pagination:', pagination); // Debug pagination state
   return (
     <div className="HomePage">
-      <h1 className="text-center">Welcome to Freelancer UI</h1>
+      <h1 className="text-center py-5">Welcome to Freelancer Database</h1>
 
       {/* Search Bar */}
       <div className="d-flex justify-content-center mb-3">
@@ -103,7 +103,7 @@ function HomePage() {
 
       {/* Freelancer Table */}
       <div className="d-flex justify-content-center">
-        <div style={{ width: '900px', maxWidth: '100%' }}>
+        <div style={{ width: '1300px', maxWidth: '100%' }}>
           <div className="d-flex justify-content-between align-items-center mb-2" style={{ width: '100%' }}>
             <div className="d-flex align-items-center">
               {/* Filter Button Group */}
@@ -125,7 +125,7 @@ function HomePage() {
           <div className='table-responsive'>
             <table className="table table-striped table-bordered w-100">
               <thead>
-                <tr>
+                <tr className='text-center'>
                   <th>Username</th>
                   <th>Email</th>
                   <th>Phone Number</th>
@@ -142,7 +142,7 @@ function HomePage() {
                     <td>{f.phoneNum || f.PhoneNum}</td>
                     <td>{Array.isArray(f.skillsets) && f.skillsets.length > 0 ? f.skillsets.map(s => s.skillName).join(', ') : '—'}</td>
                     <td>{Array.isArray(f.hobbies) && f.hobbies.length > 0 ? f.hobbies.map(h => h.hobbyName).join(', ') : '—'}</td>
-                    <td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
                       {/* Actions: View/Archive/Unarchive/Delete */}
                       <button className="btn btn-info btn-sm" onClick={() => navigate(`/Freelancers/${f.id || idx}`)}>View</button>
                       <ArchiveToggle
