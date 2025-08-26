@@ -103,58 +103,60 @@ function HomePage() {
 
       {/* Freelancer Table */}
       <div className="d-flex justify-content-center">
-        <div>
+        <div style={{ width: '900px', maxWidth: '100%' }}>
           <div className="d-flex justify-content-between align-items-center mb-2" style={{ width: '100%' }}>
-              <div className="d-flex align-items-center">
-{/* Filter Button Group */}
-            <div className="btn-group me-2" role="group">
-              <button className={`btn btn-outline-primary btn-sm${filter === 'all' ? ' active' : ''}`} onClick={() => setFilter('all')}>All</button>
-              <button className={`btn btn-outline-success btn-sm${filter === 'unarchived' ? ' active' : ''}`} onClick={() => setFilter('unarchived')}>Unarchived</button>
-              <button className={`btn btn-outline-warning btn-sm${filter === 'archived' ? ' active' : ''}`} onClick={() => setFilter('archived')}>Archived</button>
+            <div className="d-flex align-items-center">
+              {/* Filter Button Group */}
+              <div className="btn-group me-2" role="group">
+                <button className={`btn btn-outline-primary btn-sm${filter === 'all' ? ' active' : ''}`} onClick={() => setFilter('all')}>All</button>
+                <button className={`btn btn-outline-success btn-sm${filter === 'unarchived' ? ' active' : ''}`} onClick={() => setFilter('unarchived')}>Unarchived</button>
+                <button className={`btn btn-outline-warning btn-sm${filter === 'archived' ? ' active' : ''}`} onClick={() => setFilter('archived')}>Archived</button>
+              </div>
+              {/* Sort Button */}
+              <button className="btn btn-light btn-sm me-2" onClick={toggleSortOrder}>
+                <span className="me-1">Sort</span>
+                {sortOrder === 'asc' ? '↑ A-Z' : '↓ Z-A'}
+              </button>
             </div>
-            {/* Sort Button */}
-            <button className="btn btn-light btn-sm me-2" onClick={toggleSortOrder}>
-              <span className="me-1">Sort</span>
-              {sortOrder === 'asc' ? '↑ A-Z' : '↓ Z-A'}
-            </button>
-            </div>
-          
+
             {/* Create Button */}
             <button onClick={() => navigate('/create')} className="btn btn-dark btn-sm">New</button>
           </div>
-          <table className="table table-striped table-bordered w-auto">
-            <thead>
-              <tr>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Phone Number</th>
-                <th>Skillsets</th>
-                <th>Hobbies</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedAndFilteredFreelancers.map((f, idx) => (
-                <tr key={f.id || idx}>
-                  <td>{f.username || f.Username}</td>
-                  <td>{f.email || f.Email}</td>
-                  <td>{f.phoneNum || f.PhoneNum}</td>
-                  <td>{Array.isArray(f.skillsets) && f.skillsets.length > 0 ? f.skillsets.map(s => s.skillName).join(', ') : '—'}</td>
-                  <td>{Array.isArray(f.hobbies) && f.hobbies.length > 0 ? f.hobbies.map(h => h.hobbyName).join(', ') : '—'}</td>
-                  <td>
-                    {/* Actions: View/Archive/Unarchive/Delete */}
-                    <button className="btn btn-info btn-sm" onClick={() => navigate(`/Freelancers/${f.id || idx}`)}>View</button>
-                    <ArchiveToggle
-                      freelancerId={f.id || idx}
-                      isArchived={f.isArchived}
-                      onToggle={() => fetchFreelancers(pagination.currentPageNumber)}
-                    />
-                    <DeleteFreelancer freelancerId={f.id || idx} onDelete={() => deleteFreelancer(idx)} />
-                  </td>
+          <div className='table-responsive'>
+            <table className="table table-striped table-bordered w-100">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Phone Number</th>
+                  <th>Skillsets</th>
+                  <th>Hobbies</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {sortedAndFilteredFreelancers.map((f, idx) => (
+                  <tr key={f.id || idx}>
+                    <td>{f.username || f.Username}</td>
+                    <td>{f.email || f.Email}</td>
+                    <td>{f.phoneNum || f.PhoneNum}</td>
+                    <td>{Array.isArray(f.skillsets) && f.skillsets.length > 0 ? f.skillsets.map(s => s.skillName).join(', ') : '—'}</td>
+                    <td>{Array.isArray(f.hobbies) && f.hobbies.length > 0 ? f.hobbies.map(h => h.hobbyName).join(', ') : '—'}</td>
+                    <td>
+                      {/* Actions: View/Archive/Unarchive/Delete */}
+                      <button className="btn btn-info btn-sm" onClick={() => navigate(`/Freelancers/${f.id || idx}`)}>View</button>
+                      <ArchiveToggle
+                        freelancerId={f.id || idx}
+                        isArchived={f.isArchived}
+                        onToggle={() => fetchFreelancers(pagination.currentPageNumber)}
+                      />
+                      <DeleteFreelancer freelancerId={f.id || idx} onDelete={() => deleteFreelancer(idx)} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
       </div>
