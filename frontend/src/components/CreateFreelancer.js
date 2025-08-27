@@ -165,7 +165,7 @@ function CreateFreelancer() {
               ))}
               <button type="button" className="btn btn-primary" onClick={addHobby}>Add</button>
             </div>
-            <button onClick={saveFreelancer} className="mx-auto btn btn-success">
+            <button onClick={saveFreelancer} className="mx-auto btn btn-success mt-2">
               Submit
             </button>
           </div>

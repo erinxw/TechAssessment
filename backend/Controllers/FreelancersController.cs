@@ -7,7 +7,7 @@ namespace TechAssessment.Controllers.Api
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    // [Authorize]
     public class FreelancersController : ControllerBase
     {
         private readonly IFreelancerRepository _repository;
@@ -39,15 +39,17 @@ namespace TechAssessment.Controllers.Api
         {
             try
             {
-                if (freelancer.Username == null || freelancer.Username == "")
+                if (string.IsNullOrEmpty(freelancer.Username))
                 {
                     return BadRequest(new { message = "Username is required" });
                 }
-                else if (freelancer.Email == null || freelancer.Email == "")
+                
+                if (freelancer.Email == null || freelancer.Email == "")
                 {
                     return BadRequest(new { message = "Email is required" });
                 }
-                else if (freelancer.PhoneNum == null || freelancer.PhoneNum == "")
+                
+                if (freelancer.PhoneNum == null || freelancer.PhoneNum == "")
                 {
                     return BadRequest(new { message = "Phone number is required" });
                 }
@@ -98,17 +100,17 @@ namespace TechAssessment.Controllers.Api
             return await _repository.UpdateAsync(freelancer) ? NoContent() : NotFound();        // 201
         }
 
-        [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         [HttpPatch("{id}/archive")]     //http://localhost:5095/api/freelancers/{id}/archive
         public async Task<IActionResult> Archive(int id) =>
             await _repository.ArchiveAsync(id) ? NoContent() : NotFound();
 
-        [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         [HttpPatch("{id}/unarchive")]   //http://localhost:5095/api/freelancers/{id}/unarchive
         public async Task<IActionResult> Unarchive(int id) =>
             await _repository.UnarchiveAsync(id) ? NoContent() : NotFound();
 
-        [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]            //http://localhost:5095/api/freelancers/{id}
         public async Task<IActionResult> Delete(int id) =>
             await _repository.DeleteAsync(id) ? NoContent() : NotFound();

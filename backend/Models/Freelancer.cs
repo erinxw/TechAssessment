@@ -8,6 +8,7 @@ public class Freelancer
 
     public required string Username { get; set; }
 
+    //[EmailAddress(ErrorMessage = "Invalid email address")]
     public required string Email { get; set; }
 
     public required string PhoneNum { get; set; }

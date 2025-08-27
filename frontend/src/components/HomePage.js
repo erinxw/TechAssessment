@@ -20,6 +20,7 @@ function HomePage() {
 
   async function fetchFreelancers(page = 1, searchPhraseParam, sortOrderParam) {
     try {
+      const token = localStorage.getItem('accessToken');
       let url = `http://localhost:5095/api/Freelancers/filter?currentPageNumber=${page}&pageSize=${pagination.pageSize}`;
       if (filter === 'archived') url += '&isArchived=true';
       else if (filter === 'unarchived') url += '&isArchived=false';
@@ -27,7 +28,11 @@ function HomePage() {
       if (phraseToUse && phraseToUse.length >= 2) url += `&searchPhrase=${encodeURIComponent(phraseToUse)}`;
       const orderToUse = typeof sortOrderParam === 'string' ? sortOrderParam : sortOrder;
       url += `&sortOrder=${orderToUse}`;
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         setFreelancers(data.data || []); // Use the 'data' property from paginated response
