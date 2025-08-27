@@ -102,6 +102,23 @@ namespace TechAssessment.Data
             return freelancer;
         }
 
+        public async Task<Freelancer?> GetByEmailAsync(string email)
+        {
+            using var connection = GetConnection();
+            var freelancer = await connection.QuerySingleOrDefaultAsync<Freelancer>(
+                "SELECT * FROM Freelancer WHERE Email = @Email", new { Email = email });
+
+            if (freelancer != null)
+            {
+                freelancer.Skillsets = (await connection.QueryAsync<Skillset>(
+                    "SELECT * FROM Skillset WHERE FreelancerId = @Id", new { Id = freelancer.Id })).ToList();
+                freelancer.Hobbies = (await connection.QueryAsync<Hobby>(
+                    "SELECT * FROM Hobby WHERE FreelancerId = @Id", new { Id = freelancer.Id })).ToList();
+            }
+
+            return freelancer;
+        }
+
         public async Task<int> CreateAsync(Freelancer freelancer)
         {
             using var connection = GetConnection();

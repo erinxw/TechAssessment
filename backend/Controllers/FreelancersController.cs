@@ -72,6 +72,13 @@ namespace TechAssessment.Controllers.Api
                     return BadRequest(new { message = "Username already exists. Please choose another." });
                 }
 
+                // Check for duplicate email
+                var existingEmail = await _repository.GetByEmailAsync(freelancer.Email);
+                if (existingEmail != null)
+                {
+                    return BadRequest(new { message = "Email is already registered. Please sign in." });
+                }
+
                 var newId = await _repository.CreateAsync(freelancer);
                 return CreatedAtAction(nameof(GetById), new { id = newId }, freelancer);
             }

@@ -4,15 +4,16 @@ namespace TechAssessment.Data
 {
     public interface IFreelancerRepository
     {
-        Task<PaginationResponse<List<Freelancer>>> GetFreelancersAsync(int currentPageNumber = 1, int pageSize = 10, bool? isArchived = null, string? searchPhrase = null, string? sortOrder = null);
+    Task<PaginationResponse<List<Freelancer>>> GetFreelancersAsync(int currentPageNumber = 1, int pageSize = 10, bool? isArchived = null, string? searchPhrase = null, string? sortOrder = null);
 
-        Task<Freelancer?> GetByIdAsync(int id);
-        Task<Freelancer?> GetByUsernameAsync(string username);
-        Task<int> CreateAsync(Freelancer freelancer);
-        Task<bool> UpdateAsync(Freelancer freelancer);
-        Task<bool> ArchiveAsync(int id);
-        Task<bool> UnarchiveAsync(int id);
-        Task<bool> DeleteAsync(int id);
+    Task<Freelancer?> GetByIdAsync(int id);
+    Task<Freelancer?> GetByUsernameAsync(string username);
+    Task<Freelancer?> GetByEmailAsync(string email);
+    Task<int> CreateAsync(Freelancer freelancer);
+    Task<bool> UpdateAsync(Freelancer freelancer);
+    Task<bool> ArchiveAsync(int id);
+    Task<bool> UnarchiveAsync(int id);
+    Task<bool> DeleteAsync(int id);
 
         //Task<IEnumerable<Freelancer>> GetAllAsync();
         //Task<IEnumerable<Freelancer>> GetArchivedAsync();
