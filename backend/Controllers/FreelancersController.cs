@@ -36,8 +36,49 @@ namespace TechAssessment.Controllers.Api
         [HttpPost]                      //http://localhost:5095/api/freelancers
         public async Task<IActionResult> Create([FromBody] Freelancer freelancer)
         {
-            var newId = await _repository.CreateAsync(freelancer);
-            return CreatedAtAction(nameof(GetById), new { id = newId }, freelancer);
+            try
+            {
+                if (freelancer.Username == null || freelancer.Username == "")
+                {
+                    return BadRequest(new { message = "Username is required" });
+                }
+                else if (freelancer.Email == null || freelancer.Email == "")
+                {
+                    return BadRequest(new { message = "Email is required" });
+                }
+                else if (freelancer.PhoneNum == null || freelancer.PhoneNum == "")
+                {
+                    return BadRequest(new { message = "Phone number is required" });
+                }
+
+                // Email format validation
+                var emailRegex = new System.Text.RegularExpressions.Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+                if (!emailRegex.IsMatch(freelancer.Email))
+                    return BadRequest(new { message = "Please enter a valid email address." });
+
+                // Phone format validation
+                var phoneRegex = new System.Text.RegularExpressions.Regex(@"^\+?[0-9\s\-]{7,20}$");
+                if (!phoneRegex.IsMatch(freelancer.PhoneNum))
+                    return BadRequest(new { message = "Invalid phone number format." });
+
+                // Password validation 
+                if (!string.IsNullOrEmpty(freelancer.Password) && freelancer.Password.Length < 8)
+                    return BadRequest(new { message = "Password must be at least 8 characters long." });
+
+                // Check for duplicate username
+                var existing = await _repository.GetByUsernameAsync(freelancer.Username);
+                if (existing != null)
+                {
+                    return BadRequest(new { message = "Username already exists. Please choose another." });
+                }
+
+                var newId = await _repository.CreateAsync(freelancer);
+                return CreatedAtAction(nameof(GetById), new { id = newId }, freelancer);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred." });
+            }
         }
 
         [HttpPut("{id}")]               //http://localhost:5095/api/freelancers/{id}

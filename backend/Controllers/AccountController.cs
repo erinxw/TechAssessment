@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TechAssessment.Models;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -11,7 +12,7 @@ public class AccountController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("login")]
-    public async Task<ActionResult<LoginResponseModel>> Login(LoginRequestModel request)
+    public async Task<ActionResult<LoginResponseModel>> Login(Freelancer request)
     {
         var result = await _jwtService.Authenticate(request);
         if (result is null)

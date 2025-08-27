@@ -17,7 +17,7 @@ public class JwtService
         _configuration = configuration;
     }
 
-    public async Task<LoginResponseModel> Authenticate(LoginRequestModel request)
+    public async Task<LoginResponseModel> Authenticate(Freelancer request)
     {
         if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
             return null;

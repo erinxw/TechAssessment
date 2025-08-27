@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -42,6 +41,7 @@ function CreateFreelancer() {
       Username: freelancer.Username,
       Email: freelancer.Email,
       PhoneNum: freelancer.PhoneNum,
+      Password: freelancer.Password,
       Skillsets: freelancer.Skillsets,
       Hobbies: freelancer.Hobbies
     };
@@ -60,7 +60,14 @@ function CreateFreelancer() {
         setSubmitted(true);
         console.log(result);
       } else {
-        alert('Error submitting form');
+        let errorMessage = "An error occurred";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (jsonError) {
+          // If response is not JSON, keep default error message
+        }
+        alert(errorMessage);
       }
     } catch (error) {
       console.error('Error:', error);

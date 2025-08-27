@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import DeleteFreelancer from './DeleteFreelancer';
 import ArchiveToggle from './ArchiveToggle';
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function HomePage() {
   const navigate = useNavigate();
@@ -48,23 +48,6 @@ function HomePage() {
   useEffect(() => {
     fetchFreelancers(pagination.currentPageNumber, searchPhrase, sortOrder);
   }, [filter, searchPhrase, sortOrder]);
-  // ...existing code...
-
-  const unarchiveFreelancer = (idx) => {
-    setFreelancers(prev =>
-      prev.map((f, i) =>
-        i === idx ? { ...f, isArchived: false } : f
-      )
-    );
-  };
-
-  const archiveFreelancer = (idx) => {
-    setFreelancers(prev =>
-      prev.map((f, i) =>
-        i === idx ? { ...f, isArchived: true } : f
-      )
-    );
-  };
 
   const deleteFreelancer = (idx) => {
     setFreelancers(prev => prev.filter((_, i) => i !== idx));

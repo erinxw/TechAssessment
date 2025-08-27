@@ -2,28 +2,23 @@
 
 namespace TechAssessment.Models;
 
-    public class Freelancer
-    {
-        public int Id { get; set; }
+public class Freelancer
+{
+    public int Id { get; set; }
 
-        [Required(ErrorMessage = "Username is required")]
-        public required string Username { get; set; }
+    public required string Username { get; set; }
 
-        [Required]
-        [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
-        public required string Email { get; set; }
+    public required string Email { get; set; }
 
-        [Required]
-        [RegularExpression(@"^\+?[0-9\s\-]{7,20}$", ErrorMessage = "Invalid phone number format.")]
-        public required string PhoneNum { get; set; }
+    public required string PhoneNum { get; set; }
 
-        [Required]
-        [MinLength(8, ErrorMessage = "Password must be at least 8 characters long.")]
-        public string Password { get; set; }  // Hashed password
+    // [Required]
+    // public string Password { get; set; }  // Hashed password
+    public string? Password { get; set; }  // Hashed password
 
-        public bool IsArchived { get; set; }
+    public bool IsArchived { get; set; }
 
-        public List<Skillset> Skillsets { get; set; } = new List<Skillset>();
+    public List<Skillset> Skillsets { get; set; } = new List<Skillset>();
 
-        public List<Hobby> Hobbies { get; set; } = new List<Hobby>();
+    public List<Hobby> Hobbies { get; set; } = new List<Hobby>();
 }
