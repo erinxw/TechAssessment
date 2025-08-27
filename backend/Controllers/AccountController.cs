@@ -12,11 +12,11 @@ public class AccountController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("login")]
-    public async Task<ActionResult<LoginResponseModel>> Login(Freelancer request)
+    public async Task<ActionResult<LoginResponseModel>> Login(LoginRequestModel request)
     {
         var result = await _jwtService.Authenticate(request);
-        if (result is null)
-            return Unauthorized();
-        return result;
+        if (string.IsNullOrEmpty(result.AccessToken))
+            return Unauthorized(new { message = "Invalid username or password." });
+        return Ok(result);
     }
 }

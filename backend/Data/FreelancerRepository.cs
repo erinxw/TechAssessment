@@ -127,8 +127,8 @@ namespace TechAssessment.Data
             {
                 freelancer.Password = PasswordHashHandler.HashPassword(freelancer.Password);
             }
-            var sql = @"INSERT INTO Freelancer (Username, Email, PhoneNum, Password, IsArchived)
-                        VALUES (@Username, @Email, @PhoneNum, @Password, 0);
+            var sql = @"INSERT INTO Freelancer (Username, Email, PhoneNum, Password, IsArchived, IsAdmin)
+                        VALUES (@Username, @Email, @PhoneNum, @Password, 0, @IsAdmin);
                         SELECT CAST(SCOPE_IDENTITY() as int)";
             var newId = await connection.ExecuteScalarAsync<int>(sql, freelancer);
 
@@ -166,7 +166,7 @@ namespace TechAssessment.Data
                 freelancer.Password = PasswordHashHandler.HashPassword(freelancer.Password);
             }
             var sql = @"UPDATE Freelancer
-                        SET Username = @Username, Email = @Email, PhoneNum = @PhoneNum, Password = @Password, IsArchived = @IsArchived
+                        SET Username = @Username, Email = @Email, PhoneNum = @PhoneNum, Password = @Password, IsArchived = @IsArchived, IsAdmin = @IsAdmin
                         WHERE Id = @Id";
             var affected = await connection.ExecuteAsync(sql, freelancer);
             if (affected == 0) return false;

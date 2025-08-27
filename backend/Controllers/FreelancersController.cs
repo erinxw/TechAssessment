@@ -7,7 +7,7 @@ namespace TechAssessment.Controllers.Api
 {
     [Route("api/[controller]")]
     [ApiController]
-    // [Authorize]
+    [Authorize]
     public class FreelancersController : ControllerBase
     {
         private readonly IFreelancerRepository _repository;
@@ -33,6 +33,7 @@ namespace TechAssessment.Controllers.Api
             return freelancer is null ? NotFound() : Ok(freelancer);
         }
 
+        [AllowAnonymous]
         [HttpPost]                      //http://localhost:5095/api/freelancers
         public async Task<IActionResult> Create([FromBody] Freelancer freelancer)
         {
@@ -97,14 +98,17 @@ namespace TechAssessment.Controllers.Api
             return await _repository.UpdateAsync(freelancer) ? NoContent() : NotFound();        // 201
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPatch("{id}/archive")]     //http://localhost:5095/api/freelancers/{id}/archive
         public async Task<IActionResult> Archive(int id) =>
             await _repository.ArchiveAsync(id) ? NoContent() : NotFound();
 
+        [Authorize(Roles = "Admin")]
         [HttpPatch("{id}/unarchive")]   //http://localhost:5095/api/freelancers/{id}/unarchive
         public async Task<IActionResult> Unarchive(int id) =>
             await _repository.UnarchiveAsync(id) ? NoContent() : NotFound();
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]            //http://localhost:5095/api/freelancers/{id}
         public async Task<IActionResult> Delete(int id) =>
             await _repository.DeleteAsync(id) ? NoContent() : NotFound();

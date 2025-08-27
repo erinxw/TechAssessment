@@ -49,7 +49,7 @@ public class PasswordHashHandler
 			var storedSubkey = new byte[storedSubkeyLength];
 			Buffer.BlockCopy(hashedPassword, 13 + salt.Length, storedSubkey, 0, storedSubkey.Length);
 
-			var subkey = KeyDerivation.Pbkdf2(password, salt, keyDerivationPrf, iterationCount, storedSubkeyLength * 8);
+			var subkey = KeyDerivation.Pbkdf2(password, salt, keyDerivationPrf, iterationCount, storedSubkeyLength);
 			return CryptographicOperations.FixedTimeEquals(subkey, storedSubkey);
 		}
 		catch
