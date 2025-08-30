@@ -6,16 +6,22 @@ public class Freelancer
 {
     public int Id { get; set; }
 
+    [Required(ErrorMessage = "Username is required")]
     public required string Username { get; set; }
 
-    //[EmailAddress(ErrorMessage = "Invalid email address")]
+    [Required(ErrorMessage = "Email is required")]
+    [EmailAddress(ErrorMessage = "Invalid email address")]
     public required string Email { get; set; }
 
+    [Required(ErrorMessage = "Phone number is required")]
+    [Phone(ErrorMessage = "Invalid phone number")]
     public required string PhoneNum { get; set; }
 
-    // [Required]
-    // public string Password { get; set; }  // Hashed password
-    public string? Password { get; set; }  // Hashed password
+    [RegularExpression(
+        @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
+        ErrorMessage = "Password must contain at least 8 characters, one uppercase, one lowercase, one digit and one special character"
+    )]
+    public string? Password { get; set; } // Hashed password
 
     public bool IsArchived { get; set; }
 

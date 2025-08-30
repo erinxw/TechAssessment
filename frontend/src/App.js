@@ -9,6 +9,10 @@ import FreelancerDetails from './components/FreelancerDetails';
 import Login from './components/Login';
 
 function App() {
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    window.location.href = '/login';
+  };
   return (
     <BrowserRouter>
       <div className="App">
@@ -22,6 +26,9 @@ function App() {
           <div className="navbar-nav ms-auto">
             <li className='nav-item'>
               <Link to="/login" className="nav-link">Login</Link>
+            </li>
+            <li className='nav-item'>
+              <button onClick={handleLogout}>Logout</button>
             </li>
           </div>
         </nav>

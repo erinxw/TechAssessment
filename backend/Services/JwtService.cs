@@ -1,9 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using TechAssessment.Data;
 using TechAssessment.Models;
 
@@ -20,7 +20,10 @@ public class JwtService
 
     public async Task<LoginResponseModel> Authenticate(LoginRequestModel request)
     {
-        if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+        if (
+            string.IsNullOrWhiteSpace(request.Username)
+            || string.IsNullOrWhiteSpace(request.Password)
+        )
             return new LoginResponseModel();
 
         // Use the repository method to get freelancer by username
@@ -31,15 +34,18 @@ public class JwtService
             return new LoginResponseModel();
         }
 
-        if (string.IsNullOrEmpty(freelancer.Password) || !PasswordHashHandler.VerifyPassword(request.Password, freelancer.Password))
+        if (
+            string.IsNullOrEmpty(freelancer.Password)
+            || !PasswordHashHandler.VerifyPassword(request.Password, freelancer.Password)
+        )
         {
             return new LoginResponseModel();
         }
 
-    var issuer = _configuration["JwtConfig:Issuer"] ?? string.Empty;
-    var audience = _configuration["JwtConfig:Audience"] ?? string.Empty;
-    var key = _configuration["JwtConfig:Key"] ?? string.Empty;
-    var tokenValidityMins = _configuration.GetValue<int>("JwtConfig:TokenValidityMins");
+        var issuer = _configuration["JwtConfig:Issuer"] ?? string.Empty;
+        var audience = _configuration["JwtConfig:Audience"] ?? string.Empty;
+        var key = _configuration["JwtConfig:Key"] ?? string.Empty;
+        var tokenValidityMins = _configuration.GetValue<int>("JwtConfig:TokenValidityMins");
 
         var tokenExpiryTimeStamp = DateTime.UtcNow.AddMinutes(tokenValidityMins);
 
@@ -48,7 +54,7 @@ public class JwtService
             new Claim(JwtRegisteredClaimNames.Name, request.Username),
             new Claim(JwtRegisteredClaimNames.Sub, freelancer.Id.ToString()),
             new Claim("isAdmin", freelancer.IsAdmin.ToString().ToLower()),
-            new Claim(ClaimTypes.Role, freelancer.IsAdmin ? "Admin" : "Freelancer")
+            new Claim(ClaimTypes.Role, freelancer.IsAdmin ? "Admin" : "Freelancer"),
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor
@@ -59,7 +65,8 @@ public class JwtService
             Audience = audience,
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key)),
-                SecurityAlgorithms.HmacSha256Signature),
+                SecurityAlgorithms.HmacSha256Signature
+            ),
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -70,36 +77,7 @@ public class JwtService
         {
             Username = request.Username,
             AccessToken = accessToken,
-            ExpiresIn = (int)tokenExpiryTimeStamp.Subtract(DateTime.UtcNow).TotalSeconds
+            ExpiresIn = (int)tokenExpiryTimeStamp.Subtract(DateTime.UtcNow).TotalSeconds,
         };
     }
-
-    // public async Task<RegisterResponseModel> Register(Freelancer request)
-    // {
-    //     if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
-    //         return null;
-
-    //     // Check if username already exists
-    //     if (await _repository.GetByUsernameAsync(request.Username) != null)
-    //     {
-    //         throw new InvalidOperationException("Username already exists");
-    //     }
-
-    //     // Hash the password before storing
-    //     request.Password = PasswordHashHandler.HashPassword(request.Password);
-
-    //     var newId = await _repository.CreateAsync(request);
-    //     if (newId <= 0)
-    //     {
-    //         return null; // Failed to create user
-    //     }
-
-    //     return new RegisterResponseModel
-    //     {
-    //         Id = newId,
-    //         Username = request.Username,
-    //         Email = request.Email,
-    //         PhoneNum = request.PhoneNum
-    //     };
-    // }
 }

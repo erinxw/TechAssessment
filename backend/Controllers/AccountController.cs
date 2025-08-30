@@ -6,7 +6,7 @@ using TechAssessment.Models;
 [ApiController]
 public class AccountController : ControllerBase
 {
-	private readonly JwtService _jwtService;
+    private readonly JwtService _jwtService;
 
     public AccountController(JwtService jwtService) => _jwtService = jwtService;
 

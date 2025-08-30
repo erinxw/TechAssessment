@@ -1,11 +1,12 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace TechAssessment.Models;
 
 public class LoginRequestModel
 {
-
+    [Required(ErrorMessage = "Username is required")]
     public required string Username { get; set; }
 
-    // [Required]
-    // public string Password { get; set; }  // Hashed password
-    public string? Password { get; set; }  // Hashed password
+    [Required(ErrorMessage = "Password is required")]
+    public required string Password { get; set; } // Hashed password
 }

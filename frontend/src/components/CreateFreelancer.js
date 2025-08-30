@@ -6,6 +6,7 @@ function CreateFreelancer() {
     id: null,
     Username: '',
     Email: '',
+    Password: '',
     PhoneNum: '',
     Skillsets: [{ SkillName: '' }],
     Hobbies: [{ HobbyName: '' }]
@@ -40,8 +41,8 @@ function CreateFreelancer() {
     const data = {
       Username: freelancer.Username,
       Email: freelancer.Email,
-      PhoneNum: freelancer.PhoneNum,
       Password: freelancer.Password,
+      PhoneNum: freelancer.PhoneNum,
       Skillsets: freelancer.Skillsets,
       Hobbies: freelancer.Hobbies
     };
@@ -119,6 +120,18 @@ function CreateFreelancer() {
                 value={freelancer.Email}
                 onChange={handleInputChange}
                 name="Email"
+              />
+            </div>
+            <div className="form-group px-4 py-1">
+              <label htmlFor="Password">Password</label>
+              <input
+                type="password"
+                className="form-control"
+                id="Password"
+                required
+                value={freelancer.Password}
+                onChange={handleInputChange}
+                name="Password"
               />
             </div>
             <div className="form-group px-4 py-1">
