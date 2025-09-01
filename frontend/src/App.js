@@ -28,7 +28,7 @@ function App() {
               <Link to="/login" className="nav-link">Login</Link>
             </li>
             <li className='nav-item'>
-              <button onClick={handleLogout}>Logout</button>
+              <Link to="/login" className="nav-link" onClick={handleLogout}>Logout</Link>
             </li>
           </div>
         </nav>
