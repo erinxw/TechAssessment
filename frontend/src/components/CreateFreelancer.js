@@ -25,7 +25,7 @@ function CreateFreelancer() {
     updated[idx].SkillName = value;
     setFreelancer({ ...freelancer, Skillsets: updated });
   };
-  const addSkillset = () => setFreelancer({ ...freelancer, Skillsets: [...freelancer.Skillsets, { SKillName: '' }] });
+  const addSkillset = () => setFreelancer({ ...freelancer, Skillsets: [...freelancer.Skillsets, { SkillName: '' }] });
   const removeSkillset = idx => setFreelancer({ ...freelancer, Skillsets: freelancer.Skillsets.filter((_, i) => i !== idx) });
 
   const handleHobbyChange = (idx, value) => {
