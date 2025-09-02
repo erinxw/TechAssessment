@@ -9,13 +9,11 @@ public class Freelancer
     [Required(ErrorMessage = "Username is required")]
     public required string Username { get; set; }
 
-    [Required(ErrorMessage = "Email is required")]
     [EmailAddress(ErrorMessage = "Invalid email address")]
-    public required string Email { get; set; }
+    public string? Email { get; set; }
 
-    [Required(ErrorMessage = "Phone number is required")]
     [Phone(ErrorMessage = "Invalid phone number")]
-    public required string PhoneNum { get; set; }
+    public string? PhoneNum { get; set; }
 
     [RegularExpression(
         @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
@@ -27,7 +25,7 @@ public class Freelancer
 
     public bool IsAdmin { get; set; }
 
-    public List<Skillset> Skillsets { get; set; } = new List<Skillset>();
+    public List<Skillset>? Skillsets { get; set; } = new List<Skillset>();
 
-    public List<Hobby> Hobbies { get; set; } = new List<Hobby>();
+    public List<Hobby>? Hobbies { get; set; } = new List<Hobby>();
 }

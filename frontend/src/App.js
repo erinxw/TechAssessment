@@ -7,6 +7,7 @@ import HomePage from './components/HomePage';
 import CreateFreelancer from './components/CreateFreelancer';
 import FreelancerDetails from './components/FreelancerDetails';
 import Login from './components/Login';
+import Signup from './components/Signup';
 
 function App() {
   const handleLogout = () => {
@@ -28,6 +29,9 @@ function App() {
               <Link to="/login" className="nav-link">Login</Link>
             </li>
             <li className='nav-item'>
+              <Link to="/signup" className="nav-link">Signup</Link>
+            </li>
+            <li className='nav-item'>
               <Link to="/login" className="nav-link" onClick={handleLogout}>Logout</Link>
             </li>
           </div>
@@ -38,6 +42,7 @@ function App() {
           <Route path="/create" element={<CreateFreelancer />} />
           <Route path="/Freelancers/:id" element={<FreelancerDetails />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
         </Routes>
       </div>
     </BrowserRouter>
