@@ -128,44 +128,33 @@ class AuthService {
         }
     }
 
-    async apiRequest(url, options = {}) {
-        const token = this.getToken();
-
-        if (!token) {
-            throw new Error('No authentication token available');
-        }
-
-        const config = {
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-                ...options.headers,
-            },
-        };
-
+    async createFreelancer(freelancerData) {
         try {
-            const response = await fetch(url, config);
+            const token = this.getToken();
+            const response = await fetch(`http://localhost:5095/api/freelancers`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(freelancerData)
+            });
 
             if (response.status === 401) {
                 this.clearAuthData();
-                window.location.href = '/login';
+                window.location.href = '/';
                 throw new Error('Authentication failed');
             }
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json();
+                return { success: false, error: errorData.message || `Creating freelancer failed (${response.status})` };
             }
 
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                return await response.json();
-            }
-
-            return response;
+            // If backend returns no content, just return success
+            return { success: true };
         } catch (error) {
-            console.error('API request failed:', error);
-            throw error;
+            return { success: false, error: error.message || 'Network error. Please try again.' };
         }
     }
 

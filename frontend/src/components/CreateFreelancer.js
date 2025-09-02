@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import authService from '../utils/AuthService';
 
 function CreateFreelancer() {
   const initialFreelancerState = {
     id: null,
     Username: '',
     Email: '',
-    Password: '',
     PhoneNum: '',
     Skillsets: [{ SkillName: '' }],
     Hobbies: [{ HobbyName: '' }]
@@ -25,7 +25,7 @@ function CreateFreelancer() {
     updated[idx].SkillName = value;
     setFreelancer({ ...freelancer, Skillsets: updated });
   };
-  const addSkillset = () => setFreelancer({ ...freelancer, Skillsets: [...freelancer.Skillsets, { Name: '' }] });
+  const addSkillset = () => setFreelancer({ ...freelancer, Skillsets: [...freelancer.Skillsets, { SKillName: '' }] });
   const removeSkillset = idx => setFreelancer({ ...freelancer, Skillsets: freelancer.Skillsets.filter((_, i) => i !== idx) });
 
   const handleHobbyChange = (idx, value) => {
@@ -33,7 +33,7 @@ function CreateFreelancer() {
     updated[idx].HobbyName = value;
     setFreelancer({ ...freelancer, Hobbies: updated });
   };
-  const addHobby = () => setFreelancer({ ...freelancer, Hobbies: [...freelancer.Hobbies, { Name: '' }] });
+  const addHobby = () => setFreelancer({ ...freelancer, Hobbies: [...freelancer.Hobbies, { HobbyName: '' }] });
   const removeHobby = idx => setFreelancer({ ...freelancer, Hobbies: freelancer.Hobbies.filter((_, i) => i !== idx) });
 
 
@@ -41,20 +41,13 @@ function CreateFreelancer() {
     const data = {
       Username: freelancer.Username,
       Email: freelancer.Email,
-      Password: freelancer.Password,
       PhoneNum: freelancer.PhoneNum,
       Skillsets: freelancer.Skillsets,
       Hobbies: freelancer.Hobbies
     };
     console.log('Payload sent to backend:', JSON.stringify(data, null, 2));
     try {
-      const response = await fetch('http://localhost:5095/api/Freelancers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await authService.createFreelancer(data);
       if (response.ok) {
         const result = await response.json();
         setFreelancer({ ...freelancer, id: result.id });
@@ -123,18 +116,6 @@ function CreateFreelancer() {
               />
             </div>
             <div className="form-group px-4 py-1">
-              <label htmlFor="Password">Password</label>
-              <input
-                type="password"
-                className="form-control"
-                id="Password"
-                required
-                value={freelancer.Password}
-                onChange={handleInputChange}
-                name="Password"
-              />
-            </div>
-            <div className="form-group px-4 py-1">
               <label htmlFor="PhoneNum">Phone Number</label>
               <input
                 type="tel"
@@ -179,7 +160,7 @@ function CreateFreelancer() {
               <button type="button" className="btn btn-primary" onClick={addHobby}>Add</button>
             </div>
             <button onClick={saveFreelancer} className="mx-auto btn btn-success mt-2">
-              Submit
+              Create
             </button>
           </div>
         </div>

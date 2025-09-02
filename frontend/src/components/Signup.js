@@ -1,107 +1,178 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import authService from '../utils/AuthService';
+import authService from "../utils/AuthService"; 
 
 function Signup() {
   const initialFreelancerState = {
     id: null,
     Username: '',
-    Password: ''
+    Email: '',
+    Password: '',
+    PhoneNum: '',
+    Skillsets: [{ SkillName: '' }],
+    Hobbies: [{ HobbyName: '' }]
   };
   const [freelancer, setFreelancer] = useState(initialFreelancerState);
   const [submitted, setSubmitted] = useState(false);
-
-  const navigate = useNavigate();
 
   const handleInputChange = event => {
     const { name, value } = event.target;
     setFreelancer({ ...freelancer, [name]: value });
   };
 
-  const validatePassword = (Password) => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
-    return regex.test(Password);
+  // Handlers for Skillsets and Hobbies arrays
+  const handleSkillsetChange = (idx, value) => {
+    const updated = [...freelancer.Skillsets];
+    updated[idx].SkillName = value;
+    setFreelancer({ ...freelancer, Skillsets: updated });
   };
+  const addSkillset = () => setFreelancer({ ...freelancer, Skillsets: [...freelancer.Skillsets, { Name: '' }] });
+  const removeSkillset = idx => setFreelancer({ ...freelancer, Skillsets: freelancer.Skillsets.filter((_, i) => i !== idx) });
+
+  const handleHobbyChange = (idx, value) => {
+    const updated = [...freelancer.Hobbies];
+    updated[idx].HobbyName = value;
+    setFreelancer({ ...freelancer, Hobbies: updated });
+  };
+  const addHobby = () => setFreelancer({ ...freelancer, Hobbies: [...freelancer.Hobbies, { HobbyName: '' }] });
+  const removeHobby = idx => setFreelancer({ ...freelancer, Hobbies: freelancer.Hobbies.filter((_, i) => i !== idx) });
+
 
   const saveFreelancer = async () => {
-    if (!validatePassword(freelancer.Password)) {
-      alert("Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, and one number.");
-      return;
-    }
     const data = {
       Username: freelancer.Username,
-      Password: freelancer.Password
+      Email: freelancer.Email,
+      Password: freelancer.Password,
+      PhoneNum: freelancer.PhoneNum,
+      Skillsets: freelancer.Skillsets,
+      Hobbies: freelancer.Hobbies
     };
     console.log('Payload sent to backend:', JSON.stringify(data, null, 2));
     try {
-      const result = await authService.signup(data);
-      if (result.success) {
-        setFreelancer({ ...freelancer, id: result.data.Id });
+      const response = await fetch('http://localhost:5095/api/account/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+      if (response.ok) {
+        const result = await response.json();
+        setFreelancer({ ...freelancer, id: result.id });
         setSubmitted(true);
         console.log(result);
-
-        setTimeout(() => {
-          navigate('/');
-        }, 2000);
       } else {
-        alert(result.error || 'Signup failed.');
+        let errorMessage = "An error occurred";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (jsonError) {
+          // If response is not JSON, keep default error message
+        }
+        alert(errorMessage);
       }
     } catch (error) {
+      console.error('Error:', error);
       alert('Network error');
     }
   };
 
+  const navigate = useNavigate();
   const newFreelancer = () => {
     navigate('/');
   };
 
   return (
     <div className="submit-form">
-      {submitted ? (
-        <div className='container mt-4'>
-          <div className="card mx-auto" style={{ maxWidth: "400px" }}>
-            <div className="card-body d-flex flex-column align-items-center">
-              <h5>You submitted successfully!</h5>
-              <button className="btn btn-primary" onClick={newFreelancer}>
-                Back
-              </button>
-            </div>
+      <div className='container mt-4'>
+        <h2 className="text-center">Create An Account</h2>
+        <div className="card mx-auto py-3" style={{ maxWidth: "400px" }}>
+          <div className="form-group px-4 py-1">
+            <label htmlFor="Username">Username</label>
+            <input
+              type="text"
+              className="form-control"
+              id="Username"
+              required
+              value={freelancer.Username}
+              onChange={handleInputChange}
+              name="Username"
+            />
           </div>
-        </div>
-      ) : (
-        <div className='container mt-4'>
-          <h2 className="text-center">Create An Account</h2>
-          <div className="card mx-auto py-3" style={{ maxWidth: "400px" }}>
-            <div className="form-group px-4 py-1">
-              <label htmlFor="Username">Username</label>
-              <input
-                type="text"
-                className="form-control"
-                id="Username"
-                required
-                value={freelancer.Username}
-                onChange={handleInputChange}
-                name="Username"
-              />
-            </div>
-            <div className="form-group px-4 py-1">
-              <label htmlFor="Password">Password</label>
-              <input
-                type="password"
-                className="form-control"
-                id="Password"
-                required
-                value={freelancer.Password}
-                onChange={handleInputChange}
-                name="Password"
-              />
-            </div>
-            <button onClick={saveFreelancer} className="mx-auto btn btn-success mt-2">
-              Sign Up
-            </button>
+          <div className="form-group px-4 py-1">
+            <label htmlFor="Email">Email</label>
+            <input
+              type="email"
+              className="form-control"
+              id="Email"
+              required
+              value={freelancer.Email}
+              onChange={handleInputChange}
+              name="Email"
+            />
           </div>
+          <div className="form-group px-4 py-1">
+            <label htmlFor="Password">Password</label>
+            <input
+              type="password"
+              className="form-control"
+              id="Password"
+              required
+              value={freelancer.Password}
+              onChange={handleInputChange}
+              name="Password"
+            />
+          </div>
+          <div className="form-group px-4 py-1">
+            <label htmlFor="PhoneNum">Phone Number</label>
+            <input
+              type="tel"
+              className="form-control"
+              id="PhoneNum"
+              required
+              value={freelancer.PhoneNum}
+              onChange={handleInputChange}
+              name="PhoneNum"
+            />
+          </div>
+          <div className="form-group px-4 py-1">
+            <label>Skillsets</label>
+            {freelancer.Skillsets.map((skill, idx) => (
+              <div key={idx} className="input-group mb-2">
+                <input
+                  type="text"
+                  className="form-control"
+                  value={skill.SkillName}
+                  onChange={e => handleSkillsetChange(idx, e.target.value)}
+                  placeholder={`Skillset #${idx + 1}`}
+                />
+                <button type="button" className="btn btn-danger" onClick={() => removeSkillset(idx)} disabled={freelancer.Skillsets.length === 1}>Remove</button>
+              </div>
+            ))}
+            <button type="button" className="btn btn-primary" onClick={addSkillset}>Add</button>
+          </div>
+          <div className="form-group px-4 py-1">
+            <label>Hobbies</label>
+            {freelancer.Hobbies.map((hobby, idx) => (
+              <div key={idx} className="input-group mb-2">
+                <input
+                  type="text"
+                  className="form-control"
+                  value={hobby.HobbyName}
+                  onChange={e => handleHobbyChange(idx, e.target.value)}
+                  placeholder={`Hobby #${idx + 1}`}
+                />
+                <button type="button" className="btn btn-danger" onClick={() => removeHobby(idx)} disabled={freelancer.Hobbies.length === 1}>Remove</button>
+              </div>
+            ))}
+            <button type="button" className="btn btn-primary" onClick={addHobby}>Add</button>
+          </div>
+          <button onClick={saveFreelancer} className="mx-auto btn btn-success mt-2">
+            Sign Up
+          </button>
         </div>
-      )}
+      </div>
+
     </div>
   );
 }

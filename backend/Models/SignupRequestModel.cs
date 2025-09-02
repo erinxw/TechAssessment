@@ -8,6 +8,7 @@ namespace TechAssessment.Models
 
         [Required(ErrorMessage = "Username is required")]
         public required string Username { get; set; }
+        public required string Email { get; set; }
 
         [Required(ErrorMessage = "Password is required")]
         [RegularExpression(
@@ -15,5 +16,8 @@ namespace TechAssessment.Models
         ErrorMessage = "Password must contain at least 8 characters, one uppercase, one lowercase, one digit and one special character"
     )]
         public required string Password { get; set; }
+        public string? PhoneNum { get; set; }
+        public List<string>? Skillsets { get; set; } = new List<string>();
+        public List<string>? Hobbies { get; set; } = new List<string>();
     }
 }
