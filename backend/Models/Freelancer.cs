@@ -23,8 +23,6 @@ public class Freelancer
 
     public bool IsArchived { get; set; }
 
-    public bool IsAdmin { get; set; }
-
     public List<Skillset>? Skillsets { get; set; } = new List<Skillset>();
 
     public List<Hobby>? Hobbies { get; set; } = new List<Hobby>();

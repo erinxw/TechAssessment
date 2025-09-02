@@ -1,23 +1,23 @@
-// src/utils/authService.js - Minimal Version
+// src/utils/authService.js - Using accessToken consistently
 class AuthService {
     constructor() {
         this.baseURL = 'http://localhost:5095/api/account';
-        this.apiURL = 'http://localhost:5095/api';
+        this.apiURL = 'http://localhost:5095/api/freelancers';
     }
 
     // ===== ESSENTIAL TOKEN MANAGEMENT =====
     getToken() {
-        return localStorage.getItem('token');
+        return localStorage.getItem('accessToken');
     }
 
     setAuthData(authData) {
-        if (authData.AccessToken) localStorage.setItem('token', authData.AccessToken);
+        if (authData.accessToken) localStorage.setItem('accessToken', authData.accessToken);
         if (authData.Username) localStorage.setItem('username', authData.Username);
         if (authData.Id) localStorage.setItem('userId', authData.Id.toString());
     }
 
     clearAuthData() {
-        localStorage.removeItem('token');
+        localStorage.removeItem('accessToken');
         localStorage.removeItem('username');
         localStorage.removeItem('userId');
     }
@@ -45,7 +45,9 @@ class AuthService {
     }
 
     async getFreelancerById(id) {
-        return this.apiRequest(`http://localhost:5095/api/freelancers/${id}`);
+        return this.apiRequest(`http://localhost:5095/api/freelancers/${id}`, {
+            method: 'GET'
+        });
     }
 
     // ===== AUTHENTICATION API CALLS =====
@@ -96,6 +98,36 @@ class AuthService {
     }
 
     // ===== AUTHENTICATED API REQUESTS =====
+    async updateFreelancer(id, freelancerData) {
+        try {
+            const token = this.getToken();
+            const response = await fetch(`http://localhost:5095/api/freelancers/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(freelancerData)
+            });
+
+            if (response.status === 401) {
+                this.clearAuthData();
+                window.location.href = '/login';
+                throw new Error('Authentication failed');
+            }
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                return { success: false, error: errorData.message || `Update failed (${response.status})` };
+            }
+
+            // If backend returns no content, just return success
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message || 'Network error. Please try again.' };
+        }
+    }
+
     async apiRequest(url, options = {}) {
         const token = this.getToken();
 

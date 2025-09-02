@@ -13,13 +13,13 @@ function FreelancerDetails() {
             try {
                 const result = await authService.getFreelancerById(id);
                 setFreelancer({
-                    id: result.Id,
-                    username: result.Username,
-                    email: result.Email,
-                    phoneNum: result.PhoneNum,
-                    skillsets: result.Skillsets,
-                    hobbies: result.Hobbies,
-                    isArchived: result.IsArchived
+                    id: result.id,
+                    username: result.username,
+                    email: result.email,
+                    phoneNum: result.phoneNum,
+                    skillsets: result.skillsets,
+                    hobbies: result.hobbies,
+                    isArchived: result.isArchived
                 });
             } catch (error) {
                 console.error(error.message);
@@ -33,21 +33,27 @@ function FreelancerDetails() {
     const handleSave = async (e) => {
         e.preventDefault();
         const payload = {
-            id: Number(id),
-            username: freelancer.username,
-            email: freelancer.email,
-            phoneNum: freelancer.phoneNum,
-            skillsets: freelancer.skillsets,
-            hobbies: freelancer.hobbies
+            Id: Number(id),
+            Username: freelancer.username,
+            Email: freelancer.email,
+            PhoneNum: freelancer.phoneNum,
+            Skillsets: freelancer.skillsets,
+            Hobbies: freelancer.hobbies
         };
+        
         try {
-            const result = await authService.apiRequest({
-                url: `http://localhost:5095/api/Freelancers/${id}`,
-                method: 'PUT',
-                body: payload
-            });
-            if (result) {
-                setFreelancer(result);
+            console.log('Payload being sent:', payload);
+            const result = await authService.updateFreelancer(id, payload);
+            console.log('API response from update:', result);
+            if (result !== undefined) {
+                // Refetch freelancer details after successful update
+                try {
+                    const updated = await authService.getFreelancerById(id);
+                    console.log('Refetched freelancer:', updated);
+                    setFreelancer(updated);
+                } catch (fetchError) {
+                    console.error('Error refetching freelancer:', fetchError.message || fetchError);
+                }
                 setIsEditing(false);
             } else {
                 console.error('Error updating freelancer: No response data');

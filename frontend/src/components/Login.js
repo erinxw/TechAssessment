@@ -4,8 +4,8 @@ import authService from "../utils/AuthService";
 function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-
     const [error, setError] = useState('');
+
     const handleLogin = async () => {
         setError('');
         try {
@@ -13,18 +13,22 @@ function Login() {
                 Username: username,
                 Password: password
             });
+            console.log('Login result:', result);
+            
             if (result.success) {
-                if (result.data.accessToken) {
-                    localStorage.setItem('accessToken', result.data.accessToken);
-                    window.location.href = '/'; // Redirect to homepage
-                } else {
-                    setError('Invalid username or password.');
-                }
+                // AuthService already stored the token via setAuthData()
+                console.log('Login successful, token stored:', authService.getToken());
+                console.log('Is authenticated:', authService.isAuthenticated());
+                
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
             } else {
                 setError(result.error || 'Login failed.');
             }
         } catch (e) {
             setError('Network error.');
+            console.error('Login error:', e);
         }
     };
 

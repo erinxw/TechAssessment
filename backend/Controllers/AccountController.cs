@@ -62,8 +62,7 @@ public class AccountController : ControllerBase
         var freelancer = new Freelancer
         {
             Username = request.Username,
-            Password = hashedPassword,  
-            IsAdmin = true
+            Password = hashedPassword
         };
 
         // Save to database

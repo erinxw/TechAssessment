@@ -53,8 +53,6 @@ public class JwtService
         {
             new Claim(JwtRegisteredClaimNames.Name, request.Username),
             new Claim(JwtRegisteredClaimNames.Sub, freelancer.Id.ToString()),
-            new Claim("isAdmin", freelancer.IsAdmin.ToString().ToLower()),
-            new Claim(ClaimTypes.Role, freelancer.IsAdmin ? "Admin" : "Freelancer"),
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor
