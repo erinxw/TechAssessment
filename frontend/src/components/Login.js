@@ -1,4 +1,5 @@
 import { useState } from "react";
+import authService from "../utils/AuthService";
 
 function Login() {
     const [username, setUsername] = useState('');
@@ -8,24 +9,19 @@ function Login() {
     const handleLogin = async () => {
         setError('');
         try {
-            const response = await fetch('http://localhost:5095/api/account/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username, password })
+            const result = await authService.login({
+                Username: username,
+                Password: password
             });
-            if (response.ok) {
-                const data = await response.json();
-                if (data.accessToken) {
-                    localStorage.setItem('accessToken', data.accessToken);
-                    window.location.href = '/'; // Redirect to home
+            if (result.success) {
+                if (result.data.accessToken) {
+                    localStorage.setItem('accessToken', result.data.accessToken);
+                    window.location.href = '/'; // Redirect to homepage
                 } else {
                     setError('Invalid username or password.');
                 }
             } else {
-                const err = await response.json();
-                setError(err.message || 'Login failed.');
+                setError(result.error || 'Login failed.');
             }
         } catch (e) {
             setError('Network error.');

@@ -1,26 +1,17 @@
 import React from 'react';
+import authService from '../utils/AuthService';
 
 function DeleteFreelancer({ freelancerId, onDelete }) {
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this freelancer?')) return;
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`http://localhost:5095/api/freelancers/${freelancerId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      await authService.apiRequest(`http://localhost:5095/api/freelancers/${freelancerId}`, {
+        method: 'DELETE'
       });
-      if (response.ok) {
-        alert('Freelancer deleted successfully');
-        if (onDelete) onDelete(freelancerId);
-      } else {
-        alert('Error deleting freelancer');
-      }
+      alert('Freelancer deleted successfully');
+      if (onDelete) onDelete(freelancerId);
     } catch (error) {
-      console.error('Error:', error);
-      alert('Network error');
+      alert('Error deleting freelancer');
     }
   };
 

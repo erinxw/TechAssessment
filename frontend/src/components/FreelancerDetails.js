@@ -2,23 +2,33 @@ import { useParams } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import DeleteFreelancer from './DeleteFreelancer';
 import ArchiveToggle from './ArchiveToggle';
+import authService from '../utils/AuthService';
 
 function FreelancerDetails() {
     const { id } = useParams();
     const [freelancer, setFreelancer] = useState(null);
 
     useEffect(() => {
-        fetch(`http://localhost:5095/api/Freelancers/${id}`)
-            .then(response => response.json())
-            .then(data => setFreelancer(data))
-            .catch(error => console.error('Error fetching freelancer:', error));
+        const fetchFreelancer = async () => {
+            try {
+                const result = await authService.getFreelancerById(id);
+                setFreelancer({
+                    id: result.Id,
+                    username: result.Username,
+                    email: result.Email,
+                    phoneNum: result.PhoneNum,
+                    skillsets: result.Skillsets,
+                    hobbies: result.Hobbies,
+                    isArchived: result.IsArchived
+                });
+            } catch (error) {
+                console.error(error.message);
+            }
+        };
+        fetchFreelancer();
     }, [id]);
 
     const [isEditing, setIsEditing] = useState(false);
-
-    if (!freelancer) {
-        return <div>Loading...</div>;
-    }
 
     const handleSave = async (e) => {
         e.preventDefault();
@@ -31,27 +41,25 @@ function FreelancerDetails() {
             hobbies: freelancer.hobbies
         };
         try {
-            const response = await fetch(`http://localhost:5095/api/Freelancers/${id}`, {
+            const result = await authService.apiRequest({
+                url: `http://localhost:5095/api/Freelancers/${id}`,
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
+                body: payload
             });
-            if (response.ok) {
-                const text = await response.text();
-                if (text) {
-                    const updatedFreelancer = JSON.parse(text);
-                    setFreelancer(updatedFreelancer);
-                }
+            if (result) {
+                setFreelancer(result);
                 setIsEditing(false);
             } else {
-                console.error('Error updating freelancer:', response.statusText);
+                console.error('Error updating freelancer: No response data');
             }
         } catch (error) {
-            console.error('Error updating freelancer:', error);
+            console.error('Error updating freelancer:', error.message || error);
         }
     };
+
+    if (!freelancer) {
+        return <div className="container mt-4">Loading...</div>;
+    }
 
     return (
         <div className="container mt-4">
@@ -61,24 +69,24 @@ function FreelancerDetails() {
                     <form onSubmit={handleSave}>
                         <div className="card-body">
                             <div className="mb-2">
-                                <label htmlFor="username" className="form-label">Username:</label>
-                                <input id="username" className="form-control form-control-sm" value={freelancer.username} onChange={e => setFreelancer(prev => ({ ...prev, Username: e.target.value }))} />
+                                <label htmlFor="Username" className="form-label">Username:</label>
+                                <input id="Username" className="form-control form-control-sm" value={freelancer.username} onChange={e => setFreelancer(prev => ({ ...prev, username: e.target.value }))} />
                             </div>
                             <div className="mb-2">
-                                <label htmlFor="email" className="form-label">Email:</label>
-                                <input id="email" className="form-control form-control-sm" value={freelancer.email} onChange={e => setFreelancer(prev => ({ ...prev, Email: e.target.value }))} />
+                                <label htmlFor="Email" className="form-label">Email:</label>
+                                <input id="Email" className="form-control form-control-sm" value={freelancer.email} onChange={e => setFreelancer(prev => ({ ...prev, email: e.target.value }))} />
                             </div>
                             <div className="mb-2">
-                                <label htmlFor="phoneNum" className="form-label">Phone Number:</label>
-                                <input id="phoneNum" className="form-control form-control-sm" value={freelancer.phoneNum} onChange={e => setFreelancer(prev => ({ ...prev, PhoneNum: e.target.value }))} />
+                                <label htmlFor="PhoneNum" className="form-label">Phone Number:</label>
+                                <input id="PhoneNum" className="form-control form-control-sm" value={freelancer.phoneNum} onChange={e => setFreelancer(prev => ({ ...prev, phoneNum: e.target.value }))} />
                             </div>
                             <div className="mb-2">
-                                <label htmlFor="skillsets" className="form-label">Skillsets:</label>
-                                <input id="skillsets" className="form-control form-control-sm" value={freelancer.skillsets?.map(s => s.skillName).join(', ') || ''} onChange={e => setFreelancer(prev => ({ ...prev, skillsets: e.target.value.split(',').map(name => ({ skillName: name.trim() })) }))} />
+                                <label htmlFor="Skillsets" className="form-label">Skillsets:</label>
+                                <input id="Skillsets" className="form-control form-control-sm" value={freelancer.skillsets?.map(s => s.skillName).join(', ') || ''} onChange={e => setFreelancer(prev => ({ ...prev, skillsets: e.target.value.split(',').map(name => ({ skillName: name.trim() })) }))} />
                             </div>
                             <div className="mb-2">
-                                <label htmlFor="hobbies" className="form-label">Hobbies:</label>
-                                <input id="hobbies" className="form-control form-control-sm" value={freelancer.hobbies?.map(h => h.hobbyName).join(', ') || ''} onChange={e => setFreelancer(prev => ({ ...prev, hobbies: e.target.value.split(',').map(name => ({ hobbyName: name.trim() })) }))} />
+                                <label htmlFor="Hobbies" className="form-label">Hobbies:</label>
+                                <input id="Hobbies" className="form-control form-control-sm" value={freelancer.hobbies?.map(h => h.hobbyName).join(', ') || ''} onChange={e => setFreelancer(prev => ({ ...prev, hobbies: e.target.value.split(',').map(name => ({ hobbyName: name.trim() })) }))} />
                             </div>
                         </div>
                         <div className="card-footer bg-white border-0 d-flex justify-content-end">

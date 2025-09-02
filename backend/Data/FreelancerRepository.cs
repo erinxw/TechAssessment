@@ -122,11 +122,6 @@ namespace TechAssessment.Data
         public async Task<int> CreateAsync(Freelancer freelancer)
         {
             using var connection = GetConnection();
-            // Hash the password before saving
-            if (!string.IsNullOrWhiteSpace(freelancer.Password))
-            {
-                freelancer.Password = PasswordHashHandler.HashPassword(freelancer.Password);
-            }
             var sql = @"INSERT INTO Freelancer (Username, Email, PhoneNum, Password, IsArchived, IsAdmin)
                         VALUES (@Username, @Email, @PhoneNum, @Password, 0, @IsAdmin);
                         SELECT CAST(SCOPE_IDENTITY() as int)";

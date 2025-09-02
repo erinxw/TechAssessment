@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import authService from '../utils/AuthService';
 
 function Signup() {
   const initialFreelancerState = {
@@ -10,47 +11,46 @@ function Signup() {
   const [freelancer, setFreelancer] = useState(initialFreelancerState);
   const [submitted, setSubmitted] = useState(false);
 
+  const navigate = useNavigate();
+
   const handleInputChange = event => {
     const { name, value } = event.target;
     setFreelancer({ ...freelancer, [name]: value });
   };
 
+  const validatePassword = (Password) => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+    return regex.test(Password);
+  };
+
   const saveFreelancer = async () => {
+    if (!validatePassword(freelancer.Password)) {
+      alert("Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, and one number.");
+      return;
+    }
     const data = {
       Username: freelancer.Username,
       Password: freelancer.Password
     };
     console.log('Payload sent to backend:', JSON.stringify(data, null, 2));
     try {
-      const response = await fetch('http://localhost:5095/api/account/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-      });
-      if (response.ok) {
-        const result = await response.json();
-        setFreelancer({ ...freelancer, id: result.id });
+      const result = await authService.signup(data);
+      if (result.success) {
+        setFreelancer({ ...freelancer, id: result.data.Id });
         setSubmitted(true);
         console.log(result);
+
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
       } else {
-        let errorMessage = "An error occurred";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-        } catch (jsonError) {
-          // If response is not JSON, keep default error message
-        }
-        alert(errorMessage);
+        alert(result.error || 'Signup failed.');
       }
     } catch (error) {
-      console.error('Error:', error);
       alert('Network error');
     }
   };
 
-  const navigate = useNavigate();
   const newFreelancer = () => {
     navigate('/');
   };
