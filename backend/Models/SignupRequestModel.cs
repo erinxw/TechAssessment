@@ -17,7 +17,7 @@ namespace TechAssessment.Models
     )]
         public required string Password { get; set; }
         public string? PhoneNum { get; set; }
-        public List<string>? Skillsets { get; set; } = new List<string>();
-        public List<string>? Hobbies { get; set; } = new List<string>();
+    public List<Skillset>? Skillsets { get; set; } = new List<Skillset>();
+    public List<Hobby>? Hobbies { get; set; } = new List<Hobby>();
     }
 }
