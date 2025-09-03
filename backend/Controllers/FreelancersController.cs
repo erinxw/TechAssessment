@@ -38,39 +38,53 @@ namespace TechAssessment.Controllers.Api
         {
             try
             {
+                Console.WriteLine("===== CREATE FREELANCER =====");
+                Console.WriteLine("[Create] Incoming Freelancer payload:");
+                Console.WriteLine($"Username: {freelancer.Username}");
+                Console.WriteLine($"Email: {freelancer.Email}");
+                Console.WriteLine($"PhoneNum: {freelancer.PhoneNum}");
+                Console.WriteLine($"Skillsets: {System.Text.Json.JsonSerializer.Serialize(freelancer.Skillsets)}");
+                Console.WriteLine($"Hobbies: {System.Text.Json.JsonSerializer.Serialize(freelancer.Hobbies)}");
+
                 if (string.IsNullOrEmpty(freelancer.Username))
                 {
+                    Console.WriteLine("[Create] Username is required.");
                     return BadRequest(new { message = "Username is required" });
                 }
 
                 if (freelancer.Email == null || freelancer.Email == "")
                 {
+                    Console.WriteLine("[Create] Email is required.");
                     return BadRequest(new { message = "Email is required" });
                 }
 
                 if (freelancer.PhoneNum == null || freelancer.PhoneNum == "")
                 {
+                    Console.WriteLine("[Create] Phone number is required.");
                     return BadRequest(new { message = "Phone number is required" });
                 }
 
                 // Email format validation
                 var emailRegex = new System.Text.RegularExpressions.Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
                 if (!emailRegex.IsMatch(freelancer.Email))
+                {
+                    Console.WriteLine("[Create] Invalid email format.");
                     return BadRequest(new { message = "Please enter a valid email address." });
+                }
 
                 // Phone format validation
                 var phoneRegex = new System.Text.RegularExpressions.Regex(@"^\+?[0-9\s\-]{7,20}$");
                 if (!phoneRegex.IsMatch(freelancer.PhoneNum))
+                {
+                    Console.WriteLine("[Create] Invalid phone number format.");
                     return BadRequest(new { message = "Invalid phone number format." });
-
-                // Password validation 
-                if (!string.IsNullOrEmpty(freelancer.Password) && freelancer.Password.Length < 8)
-                    return BadRequest(new { message = "Password must be at least 8 characters long." });
+                }
 
                 // Check for duplicate username
                 var existing = await _repository.GetByUsernameAsync(freelancer.Username);
                 if (existing != null)
                 {
+                    Console.WriteLine("[Create] Username already exists.");
                     return BadRequest(new { message = "Username already exists. Please choose another." });
                 }
 
@@ -78,14 +92,18 @@ namespace TechAssessment.Controllers.Api
                 var existingEmail = await _repository.GetByEmailAsync(freelancer.Email);
                 if (existingEmail != null)
                 {
+                    Console.WriteLine("[Create] Email already registered.");
                     return BadRequest(new { message = "Email is already registered. Please sign in." });
                 }
 
                 var newId = await _repository.CreateAsync(freelancer);
+                Console.WriteLine($"[Create] Freelancer created with Id: {newId}");
                 return CreatedAtAction(nameof(GetById), new { id = newId }, freelancer);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"[Create] Exception: {ex.Message}");
+                Console.WriteLine($"[Create] StackTrace: {ex.StackTrace}");
                 return StatusCode(500, new { message = "An unexpected error occurred." });
             }
         }

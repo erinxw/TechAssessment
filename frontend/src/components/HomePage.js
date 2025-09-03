@@ -20,22 +20,46 @@ function HomePage() {
 
   async function fetchFreelancers(page = 1, searchPhraseParam, sortOrderParam) {
     try {
+      // Get token directly
       const token = localStorage.getItem('accessToken');
+      if (!token) {
+        alert('You must be logged in');
+        navigate('/login');
+        return;
+      }
+
       let url = `http://localhost:5095/api/Freelancers/filter?currentPageNumber=${page}&pageSize=${pagination.pageSize}`;
       if (filter === 'archived') url += '&isArchived=true';
       else if (filter === 'unarchived') url += '&isArchived=false';
+      
       const phraseToUse = typeof searchPhraseParam === 'string' ? searchPhraseParam : searchPhrase;
-      if (phraseToUse && phraseToUse.length >= 2) url += `&searchPhrase=${encodeURIComponent(phraseToUse)}`;
+      if (phraseToUse && phraseToUse.length >= 2) {
+        url += `&searchPhrase=${encodeURIComponent(phraseToUse)}`;
+      }
+      
       const orderToUse = typeof sortOrderParam === 'string' ? sortOrderParam : sortOrder;
       url += `&sortOrder=${orderToUse}`;
+
+      console.log('Fetching:', url);
+      
       const response = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${token}`
+          'Authorization': `Bearer ${token}`
         }
       });
+
+      if (response.status === 401) {
+        alert('Session expired. Please login again.');
+        localStorage.clear();
+        navigate('/login');
+        return;
+      }
+
       if (response.ok) {
         const data = await response.json();
-        setFreelancers(data.data || []); // Use the 'data' property from paginated response
+        console.log('Freelancers data:', data);
+        
+        setFreelancers(data.data || []); 
         setPagination({
           totalCount: data.totalCount,
           pageSize: data.pageSize,
@@ -44,9 +68,13 @@ function HomePage() {
           hasPreviousPage: data.hasPreviousPage,
           hasNextPage: data.hasNextPage
         });
+      } else {
+        console.error('Failed to fetch freelancers:', response.status);
+        alert('Failed to load freelancers');
       }
     } catch (error) {
       console.error('Error fetching freelancers:', error);
+      alert('Network error');
     }
   }
 
@@ -58,16 +86,14 @@ function HomePage() {
     setFreelancers(prev => prev.filter((_, i) => i !== idx));
   };
 
-  // Remove frontend sorting, use backend sorted freelancers
-  const sortedAndFilteredFreelancers = freelancers;
-
   const toggleSortOrder = () => {
     const newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
     setSortOrder(newOrder);
     fetchFreelancers(pagination.currentPageNumber, searchPhrase, newOrder);
-  }
+  };
 
-  console.log('Pagination:', pagination); // Debug pagination state
+  console.log('Pagination:', pagination); 
+  
   return (
     <div className="HomePage">
       <h1 className="text-center py-5">Welcome to Freelancer Database</h1>
@@ -90,9 +116,24 @@ function HomePage() {
             <div className="d-flex align-items-center">
               {/* Filter Button Group */}
               <div className="btn-group me-2" role="group">
-                <button className={`btn btn-outline-primary btn-sm${filter === 'all' ? ' active' : ''}`} onClick={() => setFilter('all')}>All</button>
-                <button className={`btn btn-outline-success btn-sm${filter === 'unarchived' ? ' active' : ''}`} onClick={() => setFilter('unarchived')}>Unarchived</button>
-                <button className={`btn btn-outline-warning btn-sm${filter === 'archived' ? ' active' : ''}`} onClick={() => setFilter('archived')}>Archived</button>
+                <button 
+                  className={`btn btn-outline-primary btn-sm${filter === 'all' ? ' active' : ''}`} 
+                  onClick={() => setFilter('all')}
+                >
+                  All
+                </button>
+                <button 
+                  className={`btn btn-outline-success btn-sm${filter === 'unarchived' ? ' active' : ''}`} 
+                  onClick={() => setFilter('unarchived')}
+                >
+                  Unarchived
+                </button>
+                <button 
+                  className={`btn btn-outline-warning btn-sm${filter === 'archived' ? ' active' : ''}`} 
+                  onClick={() => setFilter('archived')}
+                >
+                  Archived
+                </button>
               </div>
               {/* Sort Button */}
               <button className="btn btn-light btn-sm me-2" onClick={toggleSortOrder}>
@@ -104,6 +145,7 @@ function HomePage() {
             {/* Create Button */}
             <button onClick={() => navigate('/create')} className="btn btn-dark btn-sm">New</button>
           </div>
+          
           <div className='table-responsive'>
             <table className="table table-striped table-bordered w-100">
               <thead>
@@ -117,22 +159,39 @@ function HomePage() {
                 </tr>
               </thead>
               <tbody>
-                {sortedAndFilteredFreelancers.map((f, idx) => (
+                {freelancers.map((f, idx) => (
                   <tr key={f.id || idx}>
                     <td>{f.username || f.Username}</td>
                     <td>{f.email || f.Email}</td>
                     <td>{f.phoneNum || f.PhoneNum}</td>
-                    <td>{Array.isArray(f.skillsets) && f.skillsets.length > 0 ? f.skillsets.map(s => s.skillName).join(', ') : '—'}</td>
-                    <td>{Array.isArray(f.hobbies) && f.hobbies.length > 0 ? f.hobbies.map(h => h.hobbyName).join(', ') : '—'}</td>
+                    <td>
+                      {Array.isArray(f.skillsets) && f.skillsets.length > 0 
+                        ? f.skillsets.map(s => s.skillName).join(', ') 
+                        : '—'
+                      }
+                    </td>
+                    <td>
+                      {Array.isArray(f.hobbies) && f.hobbies.length > 0 
+                        ? f.hobbies.map(h => h.hobbyName).join(', ') 
+                        : '—'
+                      }
+                    </td>
                     <td style={{ whiteSpace: 'nowrap' }}>
-                      {/* Actions: View/Archive/Unarchive/Delete */}
-                      <button className="btn btn-info btn-sm" onClick={() => navigate(`/Freelancers/${f.id || idx}`)}>View</button>
+                      <button 
+                        className="btn btn-info btn-sm" 
+                        onClick={() => navigate(`/Freelancers/${f.id || idx}`)}
+                      >
+                        View
+                      </button>
                       <ArchiveToggle
                         freelancerId={f.id || idx}
                         isArchived={f.isArchived}
                         onToggle={() => fetchFreelancers(pagination.currentPageNumber)}
                       />
-                      <DeleteFreelancer freelancerId={f.id || idx} onDelete={() => deleteFreelancer(idx)} />
+                      <DeleteFreelancer 
+                        freelancerId={f.id || idx} 
+                        onDelete={() => deleteFreelancer(idx)} 
+                      />
                     </td>
                   </tr>
                 ))}
@@ -140,8 +199,9 @@ function HomePage() {
             </table>
           </div>
         </div>
-
       </div>
+      
+      {/* Pagination */}
       <div className="d-flex justify-content-center my-3">
         <div className="pagination-buttons">
           <button

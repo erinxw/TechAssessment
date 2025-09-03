@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import authService from '../utils/AuthService';
 
 function CreateFreelancer() {
   const initialFreelancerState = {
@@ -13,6 +12,7 @@ function CreateFreelancer() {
   };
   const [freelancer, setFreelancer] = useState(initialFreelancerState);
   const [submitted, setSubmitted] = useState(false);
+  const navigate = useNavigate();
 
   const handleInputChange = event => {
     const { name, value } = event.target;
@@ -36,40 +36,74 @@ function CreateFreelancer() {
   const addHobby = () => setFreelancer({ ...freelancer, Hobbies: [...freelancer.Hobbies, { HobbyName: '' }] });
   const removeHobby = idx => setFreelancer({ ...freelancer, Hobbies: freelancer.Hobbies.filter((_, i) => i !== idx) });
 
-
   const saveFreelancer = async () => {
+    // Get token directly
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      alert('You must be logged in to create a freelancer');
+      navigate('/login');
+      return;
+    }
+
+    // Prepare data
     const data = {
-      Username: freelancer.Username,
-      Email: freelancer.Email,
-      PhoneNum: freelancer.PhoneNum,
-      Skillsets: freelancer.Skillsets,
-      Hobbies: freelancer.Hobbies
+      Username: freelancer.Username.trim(),
+      Email: freelancer.Email.trim(),
+      PhoneNum: freelancer.PhoneNum.trim(),
+      Skillsets: freelancer.Skillsets.filter(skill => skill.SkillName.trim() !== '').map(skill => ({ SkillName: skill.SkillName.trim() })),
+      Hobbies: freelancer.Hobbies.filter(hobby => hobby.HobbyName.trim() !== '').map(hobby => ({ HobbyName: hobby.HobbyName.trim() }))
     };
-    console.log('Payload sent to backend:', JSON.stringify(data, null, 2));
+
+    // Basic validation
+    if (!data.Username || !data.Email || !data.PhoneNum) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    console.log('=== CREATE FREELANCER DEBUG ===');
+    console.log('Token exists:', !!token);
+    console.log('Payload:', JSON.stringify(data, null, 2));
+
     try {
-      const response = await authService.createFreelancer(data);
+      const response = await fetch('http://localhost:5095/api/freelancers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+      });
+
+      console.log('Response status:', response.status);
+      
+      if (response.status === 401) {
+        alert('Session expired. Please login again.');
+        localStorage.clear();
+        navigate('/login');
+        return;
+      }
+
       if (response.ok) {
-        const result = await response.json();
-        setFreelancer({ ...freelancer, id: result.id });
+        console.log('Success! Freelancer created');
         setSubmitted(true);
-        console.log(result);
       } else {
-        let errorMessage = "An error occurred";
+        // Get error message
+        let errorMessage = 'An error occurred';
         try {
           const errorData = await response.json();
           errorMessage = errorData.message || errorMessage;
-        } catch (jsonError) {
-          // If response is not JSON, keep default error message
+          console.log('Error data:', errorData);
+        } catch (e) {
+          console.log('Could not parse error response');
         }
         alert(errorMessage);
       }
     } catch (error) {
-      console.error('Error:', error);
-      alert('Network error');
+      console.error('Network error:', error);
+      alert('Network error. Please try again.');
     }
   };
 
-  const navigate = useNavigate();
   const newFreelancer = () => {
     navigate('/');
   };
@@ -138,7 +172,14 @@ function CreateFreelancer() {
                     onChange={e => handleSkillsetChange(idx, e.target.value)}
                     placeholder={`Skillset #${idx + 1}`}
                   />
-                  <button type="button" className="btn btn-danger" onClick={() => removeSkillset(idx)} disabled={freelancer.Skillsets.length === 1}>Remove</button>
+                  <button 
+                    type="button" 
+                    className="btn btn-danger" 
+                    onClick={() => removeSkillset(idx)} 
+                    disabled={freelancer.Skillsets.length === 1}
+                  >
+                    Remove
+                  </button>
                 </div>
               ))}
               <button type="button" className="btn btn-primary" onClick={addSkillset}>Add</button>
@@ -154,7 +195,14 @@ function CreateFreelancer() {
                     onChange={e => handleHobbyChange(idx, e.target.value)}
                     placeholder={`Hobby #${idx + 1}`}
                   />
-                  <button type="button" className="btn btn-danger" onClick={() => removeHobby(idx)} disabled={freelancer.Hobbies.length === 1}>Remove</button>
+                  <button 
+                    type="button" 
+                    className="btn btn-danger" 
+                    onClick={() => removeHobby(idx)} 
+                    disabled={freelancer.Hobbies.length === 1}
+                  >
+                    Remove
+                  </button>
                 </div>
               ))}
               <button type="button" className="btn btn-primary" onClick={addHobby}>Add</button>

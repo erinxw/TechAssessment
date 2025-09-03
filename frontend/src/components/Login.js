@@ -1,5 +1,4 @@
 import { useState } from "react";
-import authService from "../utils/AuthService";
 
 function Login() {
     const [username, setUsername] = useState('');
@@ -8,27 +7,53 @@ function Login() {
 
     const handleLogin = async () => {
         setError('');
+        
+        if (!username || !password) {
+            setError('Please fill in all fields');
+            return;
+        }
+
         try {
-            const result = await authService.login({
-                Username: username,
-                Password: password
-            });
-            console.log('Login result:', result);
+            console.log('Attempting login for:', username);
             
-            if (result.success) {
-                // AuthService already stored the token via setAuthData()
-                console.log('Login successful, token stored:', authService.getToken());
-                console.log('Is authenticated:', authService.isAuthenticated());
+            const response = await fetch('http://localhost:5095/api/account/login', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({
+                    Username: username,
+                    Password: password
+                })
+            });
+
+            const data = await response.json();
+            console.log('Login response:', response.status, data);
+
+            if (response.ok) {
+                // Store auth data directly
+                if (data.accessToken) localStorage.setItem('accessToken', data.accessToken);
+                if (data.Username) localStorage.setItem('username', data.Username);
+                if (data.Id) localStorage.setItem('userId', data.Id.toString());
                 
+                console.log('Login successful, token stored:', !!localStorage.getItem('accessToken'));
+                
+                alert('Login successful! Redirecting...');
                 setTimeout(() => {
                     window.location.href = '/';
-                }, 2000);
+                }, 1000);
             } else {
-                setError(result.error || 'Login failed.');
+                setError(data.message || 'Login failed');
             }
-        } catch (e) {
-            setError('Network error.');
-            console.error('Login error:', e);
+        } catch (error) {
+            console.error('Login error:', error);
+            setError('Network error. Please try again.');
+        }
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleLogin();
         }
     };
 
@@ -45,6 +70,7 @@ function Login() {
                         required
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
+                        onKeyPress={handleKeyPress}
                         name="Username"
                     />
                 </div>
@@ -57,6 +83,7 @@ function Login() {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        onKeyPress={handleKeyPress}
                         name="Password"
                     />
                 </div>
@@ -66,7 +93,7 @@ function Login() {
                 </button>
             </div>
         </div>
-    )
+    );
 }
 
 export default Login;

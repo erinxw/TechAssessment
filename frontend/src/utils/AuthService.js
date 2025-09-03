@@ -1,4 +1,4 @@
-// src/utils/authService.js - Using accessToken consistently
+// src/utils/authService.js - Consistent apiRequest usage
 class AuthService {
     constructor() {
         this.baseURL = 'http://localhost:5095/api/account';
@@ -44,10 +44,66 @@ class AuthService {
         };
     }
 
-    async getFreelancerById(id) {
-        return this.apiRequest(`http://localhost:5095/api/freelancers/${id}`, {
-            method: 'GET'
-        });
+    // ===== CENTRALIZED API REQUEST HANDLER =====
+    async apiRequest(url, options = {}) {
+        const token = this.getToken();
+        const defaultHeaders = {
+            'Content-Type': 'application/json',
+        };
+
+        if (token) {
+            defaultHeaders['Authorization'] = `Bearer ${token}`;
+        }
+
+        const config = {
+            method: 'GET',
+            headers: defaultHeaders,
+            ...options,
+            // Merge headers properly
+            headers: {
+                ...defaultHeaders,
+                ...(options.headers || {})
+            }
+        };
+
+        try {
+            const response = await fetch(url, config);
+            
+            // Centralized 401 handling
+            if (response.status === 401) {
+                this.clearAuthData();
+                window.location.href = '/login';
+                throw new Error('Authentication failed');
+            }
+
+            return response;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // Helper method to handle common response patterns
+    async handleApiResponse(response) {
+        if (!response.ok) {
+            let errorMessage = `Request failed (${response.status})`;
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.message || errorMessage;
+            } catch (e) {
+                // Keep default error message if response is not JSON
+            }
+            return { success: false, error: errorMessage };
+        }
+
+        // Try to get response data
+        let responseData = null;
+        try {
+            responseData = await response.json();
+        } catch (e) {
+            // No JSON data, that's fine for some endpoints
+        }
+
+        return { success: true, data: responseData };
     }
 
     // ===== AUTHENTICATION API CALLS =====
@@ -98,31 +154,28 @@ class AuthService {
     }
 
     // ===== AUTHENTICATED API REQUESTS =====
+    
+    async getFreelancerById(id) {
+        try {
+            const response = await this.apiRequest(`${this.apiURL}/${id}`);
+            return this.handleApiResponse(response);
+        } catch (error) {
+            return { success: false, error: error.message || 'Network error' };
+        }
+    }
+
     async updateFreelancer(id, freelancerData) {
         try {
-            const token = this.getToken();
-            const response = await fetch(`http://localhost:5095/api/freelancers/${id}`, {
+            if (!this.isAuthenticated()) {
+                return { success: false, error: 'Not authenticated' };
+            }
+
+            const response = await this.apiRequest(`${this.apiURL}/${id}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
                 body: JSON.stringify(freelancerData)
             });
 
-            if (response.status === 401) {
-                this.clearAuthData();
-                window.location.href = '/login';
-                throw new Error('Authentication failed');
-            }
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                return { success: false, error: errorData.message || `Update failed (${response.status})` };
-            }
-
-            // If backend returns no content, just return success
-            return { success: true };
+            return this.handleApiResponse(response);
         } catch (error) {
             return { success: false, error: error.message || 'Network error. Please try again.' };
         }
@@ -130,31 +183,43 @@ class AuthService {
 
     async createFreelancer(freelancerData) {
         try {
-            const token = this.getToken();
-            const response = await fetch(`http://localhost:5095/api/freelancers`, {
+            if (!this.isAuthenticated()) {
+                return { success: false, error: 'Not authenticated' };
+            }
+
+            const response = await this.apiRequest(`${this.apiURL}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
                 body: JSON.stringify(freelancerData)
             });
 
-            if (response.status === 401) {
-                this.clearAuthData();
-                window.location.href = '/';
-                throw new Error('Authentication failed');
-            }
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                return { success: false, error: errorData.message || `Creating freelancer failed (${response.status})` };
-            }
-
-            // If backend returns no content, just return success
-            return { success: true };
+            return this.handleApiResponse(response);
         } catch (error) {
             return { success: false, error: error.message || 'Network error. Please try again.' };
+        }
+    }
+
+    async deleteFreelancer(id) {
+        try {
+            if (!this.isAuthenticated()) {
+                return { success: false, error: 'Not authenticated' };
+            }
+
+            const response = await this.apiRequest(`${this.apiURL}/${id}`, {
+                method: 'DELETE'
+            });
+
+            return this.handleApiResponse(response);
+        } catch (error) {
+            return { success: false, error: error.message || 'Network error. Please try again.' };
+        }
+    }
+
+    async getAllFreelancers() {
+        try {
+            const response = await this.apiRequest(`${this.apiURL}`);
+            return this.handleApiResponse(response);
+        } catch (error) {
+            return { success: false, error: error.message || 'Network error' };
         }
     }
 
@@ -167,6 +232,19 @@ class AuthService {
         return this.apiRequest(`${this.apiURL}${endpoint}`, {
             method: 'POST',
             body: JSON.stringify(data)
+        });
+    }
+
+    async put(endpoint, data) {
+        return this.apiRequest(`${this.apiURL}${endpoint}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+    }
+
+    async delete(endpoint) {
+        return this.apiRequest(`${this.apiURL}${endpoint}`, {
+            method: 'DELETE'
         });
     }
 }
